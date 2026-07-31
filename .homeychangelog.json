@@ -4,5 +4,8 @@
   },
   "1.0.13": {
     "en": "Added explicit Home battery flow cards for battery mode, discharge control, SoC limits, grid residual power, grid charge limit, and charge/discharge state automations."
+  },
+  "1.0.14": {
+    "en": "Fixed charging session energy being reported in Wh instead of kWh, causing incorrect readings on the Homey Energy dashboard."
   }
 }
