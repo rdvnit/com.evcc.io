@@ -1,0 +1,17 @@
+{
+  "type": "number",
+  "title": {
+    "en": "Battery buffer SoC"
+  },
+  "units": {
+    "en": "%"
+  },
+  "min": 0,
+  "max": 1,
+  "step": 0.05,
+  "decimals": 2,
+  "getable": true,
+  "setable": true,
+  "uiComponent": "slider",
+  "insights": false
+}

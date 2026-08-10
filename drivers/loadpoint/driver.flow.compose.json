@@ -1,0 +1,252 @@
+{
+  "triggers": [
+    {
+      "id": "charge_mode_changed",
+      "title": {
+        "en": "Charging mode changed"
+      },
+      "titleFormatted": {
+        "en": "Charging mode changed to [[mode]]"
+      },
+      "args": [
+        {
+          "name": "mode",
+          "type": "dropdown",
+          "values": [
+            {
+              "id": "off",
+              "label": {
+                "en": "Off"
+              }
+            },
+            {
+              "id": "pv",
+              "label": {
+                "en": "Solar only"
+              }
+            },
+            {
+              "id": "minpv",
+              "label": {
+                "en": "Min + Solar"
+              }
+            },
+            {
+              "id": "now",
+              "label": {
+                "en": "Fast"
+              }
+            }
+          ]
+        }
+      ],
+      "tokens": [
+        {
+          "name": "mode",
+          "type": "string",
+          "title": {
+            "en": "Mode"
+          }
+        }
+      ]
+    },
+    {
+      "id": "vehicle_connected",
+      "title": {
+        "en": "Vehicle connected"
+      },
+      "args": []
+    },
+    {
+      "id": "vehicle_disconnected",
+      "title": {
+        "en": "Vehicle disconnected"
+      },
+      "args": []
+    },
+    {
+      "id": "charging_started",
+      "title": {
+        "en": "Charging started"
+      },
+      "args": []
+    },
+    {
+      "id": "charging_stopped",
+      "title": {
+        "en": "Charging stopped"
+      },
+      "args": []
+    },
+    {
+      "id": "target_soc_reached",
+      "title": {
+        "en": "Target charge limit reached"
+      },
+      "args": []
+    }
+  ],
+  "conditions": [
+    {
+      "id": "charge_mode_is",
+      "title": {
+        "en": "Charging mode !{{is|is not}}"
+      },
+      "titleFormatted": {
+        "en": "Charging mode !{{is|is not}} [[mode]]"
+      },
+      "args": [
+        {
+          "name": "mode",
+          "type": "dropdown",
+          "values": [
+            {
+              "id": "off",
+              "label": {
+                "en": "Off"
+              }
+            },
+            {
+              "id": "pv",
+              "label": {
+                "en": "Solar only"
+              }
+            },
+            {
+              "id": "minpv",
+              "label": {
+                "en": "Min + Solar"
+              }
+            },
+            {
+              "id": "now",
+              "label": {
+                "en": "Fast"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "is_charging",
+      "title": {
+        "en": "Is !{{charging|not charging}}"
+      },
+      "args": []
+    },
+    {
+      "id": "is_connected",
+      "title": {
+        "en": "Vehicle !{{is|is not}} connected"
+      },
+      "args": []
+    }
+  ],
+  "actions": [
+    {
+      "id": "set_charge_mode",
+      "title": {
+        "en": "Set charging mode"
+      },
+      "titleFormatted": {
+        "en": "Set charging mode to [[mode]]"
+      },
+      "args": [
+        {
+          "name": "mode",
+          "type": "dropdown",
+          "values": [
+            {
+              "id": "off",
+              "label": {
+                "en": "Off"
+              }
+            },
+            {
+              "id": "pv",
+              "label": {
+                "en": "Solar only"
+              }
+            },
+            {
+              "id": "minpv",
+              "label": {
+                "en": "Min + Solar"
+              }
+            },
+            {
+              "id": "now",
+              "label": {
+                "en": "Fast"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "set_target_soc",
+      "title": {
+        "en": "Set target charge limit"
+      },
+      "titleFormatted": {
+        "en": "Set target charge limit to [[soc]] %"
+      },
+      "args": [
+        {
+          "name": "soc",
+          "type": "number",
+          "title": {
+            "en": "Limit (%)"
+          },
+          "min": 0,
+          "max": 100,
+          "step": 5
+        }
+      ]
+    },
+    {
+      "id": "set_min_current",
+      "title": {
+        "en": "Set minimum charge current"
+      },
+      "titleFormatted": {
+        "en": "Set minimum charge current to [[amps]] A"
+      },
+      "args": [
+        {
+          "name": "amps",
+          "type": "number",
+          "title": {
+            "en": "Amps"
+          },
+          "min": 6,
+          "max": 32,
+          "step": 1
+        }
+      ]
+    },
+    {
+      "id": "set_max_current",
+      "title": {
+        "en": "Set maximum charge current"
+      },
+      "titleFormatted": {
+        "en": "Set maximum charge current to [[amps]] A"
+      },
+      "args": [
+        {
+          "name": "amps",
+          "type": "number",
+          "title": {
+            "en": "Amps"
+          },
+          "min": 6,
+          "max": 32,
+          "step": 1
+        }
+      ]
+    }
+  ]
+}

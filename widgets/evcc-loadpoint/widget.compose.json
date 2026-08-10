@@ -1,0 +1,29 @@
+{
+  "name": {
+    "en": "Charging point"
+  },
+  "height": 140,
+  "settings": [],
+  "devices": {
+    "type": "app",
+    "singular": true,
+    "filter": {
+      "class": "evcharger",
+      "capabilities": "evcc_charge_mode"
+    }
+  },
+  "api": {
+    "getLoadpoint": {
+      "method": "GET",
+      "path": "/"
+    },
+    "setMode": {
+      "method": "POST",
+      "path": "/mode"
+    },
+    "refresh": {
+      "method": "POST",
+      "path": "/refresh"
+    }
+  }
+}

@@ -1,0 +1,155 @@
+<html>
+
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+    <link href="./style.css?v=7" rel="stylesheet" />
+</head>
+
+<body class="homey-widget-full">
+    <main class="energy-flow" aria-live="polite">
+        <div class="scale-row top">
+            <div id="input-scale" class="scale-bars"></div>
+            <div class="scale-name">In</div>
+        </div>
+        <div id="flow-bar" class="flow-bar"></div>
+        <div class="scale-row bottom">
+            <div id="output-scale" class="scale-bars"></div>
+            <div class="scale-name">Out</div>
+        </div>
+        <p id="error" class="error" hidden></p>
+    </main>
+
+    <script type="text/javascript">
+        const icons = {
+            sun: '<svg viewBox="0 0 48 48"><path fill="none" d="M0 0h48v48H0z"/><path d="M24 34c5.514 0 10-4.486 10-10s-4.486-10-10-10-10 4.486-10 10 4.486 10 10 10m6-10c0 3.309-2.691 6-6 6s-6-2.691-6-6 2.691-6 6-6 6 2.691 6 6M22 4h4v6h-4zM22 38h4v6h-4zM4 22h6v4H4zM38 22h6v4h-6zM12.268 7.68l3.464-2 3 5.196-3.464 2zM29.267 37.122l3.465-2 3 5.196-3.465 2zM5.68 32.267l5.195-3 2 3.465-5.195 3zM35.125 15.269l5.196-3 2 3.466-5.196 3zM5.68 15.732l2-3.465 5.196 3-2 3.465zM35.124 32.734l2-3.465 5.196 3-2 3.465zM12.267 40.32l3-5.197 3.464 2-3 5.196zM29.269 10.875l3-5.195 3.465 2-3 5.196z"/></svg>',
+            grid: '<svg viewBox="0 0 48 48"><path fill="none" d="M0 0h48v48H0z"/><path d="m43.109 14.336-12-8A2 2 0 0 0 29.981 6h-12a2 2 0 0 0-1.1.335L4.891 14.336A2 2 0 0 0 6 18h10v5.528L8.211 39.106a2 2 0 0 0 2.649 2.7L24 35.549l13.14 6.258a2 2 0 0 0 2.649-2.7L32 23.528V18h10a2 2 0 0 0 1.109-3.664M20 10h8v4h-8Zm-7.394 4L16 11.738V14Zm16.158 12 1.151 2.3L24 31.119 18.085 28.3l1.151-2.3Zm-14.375 9.7 1.911-3.819 3.052 1.453Zm14.263-2.362 3.048-1.457 1.911 3.819ZM28 22h-8v-4h8Zm4-8v-2.263L35.4 14Z"/></svg>',
+            home: '<svg viewBox="0 0 48 48"><path fill="none" d="M0 0h48v48H0z"/><path d="M8 44h32V20h4L24 4 4 20h4zm18-4h-4V28h4zM12 18.723l12-9.6 12 9.6V40h-6V24H18v16h-6z"/></svg>',
+            car: '<svg viewBox="0 0 48 48"><circle cx="16" cy="26" r="2"/><circle cx="32" cy="26" r="2"/><path d="M42 18h-3.8c-.5-4.5-4.3-8.1-9-8.1H18.8c-4.7 0-8.5 3.6-9 8.1H6c-1.1 0-2 .9-2 2s.9 2 2 2h2.4c-.3.6-.4 1.3-.4 2v10.4c.2 2 1.9 3.6 4 3.6s3.8-1.6 4-3.6V34h16v.4c.2 2 1.9 3.6 4 3.6s3.8-1.6 4-3.6V24c0-.7-.1-1.4-.3-2H42c1.1 0 2-.9 2-2s-.9-2-2-2m-23.2-4.1h10.5c2.4 0 4.5 1.7 4.9 4.1H13.8c.5-2.4 2.5-4.1 5-4.1M14 30c-1.1 0-2-.9-2-2v-4c0-1.1.9-2 2-2h20c1.1 0 2 .9 2 2v4c0 1.1-.9 2-2 2z"/></svg>',
+            battery: '<svg viewBox="0 0 48 48"><path d="M0-.004h48v48H0v-48z" fill="none"/><path fill="currentColor" d="M35 9.996h-3v-4a2 2 0 00-2-2H18a2 2 0 00-2 2v4h-3a2 2 0 00-2 2v30a2 2 0 002 2h22a2 2 0 002-2v-30a2 2 0 00-2-2zm-15-2h8v2h-8v-2zm13 32H15v-26h18v26z"/></svg>',
+            heatpump: '<svg viewBox="0 0 24 24"><path fill="currentColor" d="M12 18q-2.5 0-4.25-1.75T6 12t1.75-4.25T12 6t4.25 1.75T18 12t-1.75 4.25T12 18m-.75-2.075V13.8l-1.5 1.5q.35.225.713.388t.787.237m1.5 0q.4-.075.775-.238t.725-.387l-1.5-1.5zm2.55-1.675q.225-.35.388-.725t.237-.775H13.8zm-1.5-3h2.125q-.075-.4-.238-.775T15.3 9.75zm-1.05-1.05l1.5-1.5q-.35-.225-.712-.387t-.788-.238zM12 13q.425 0 .713-.288T13 12t-.288-.712T12 11t-.712.288T11 12t.288.713T12 13m-.75-2.8V8.075q-.4.075-.775.238T9.75 8.7zm-3.175 1.05H10.2l-1.5-1.5q-.225.35-.387.725t-.238.775m.625 3l1.5-1.5q-.35-.225-.713-.388t-.787-.237q-.4 0-.775.238t-.725.387l1.5 1.5m4.4 3.5v-2.125q.4.075.775-.237t.725-.388l1.5 1.5zm-3.15-2.1v-2.125q-.4 0-.775.238t-.725.387l1.5 1.5m5.25 1.05l1.5-1.5q-.225-.35-.387-.725t-.238-.775H14.4z"/></svg>',
+            unknown: '<svg viewBox="0 0 32 32"><path d="M16 24a1.67 1.67 0 1 0 0-3.33A1.67 1.67 0 0 0 16 24m0-13.73c1.2 0 2.17.73 2.17 1.9 0 1.27-.8 1.93-1.52 2.56-1.13 1-1.73 1.78-1.85 3.02-.03.31.09.58.33.82.25.23.54.35.87.35.67 0 1.2-.5 1.3-1.17.08-.75.5-1.2 1.37-2.08 1.3-1.3 1.93-2.27 1.93-3.6C20.6 9.67 18.67 8 16 8c-1.82 0-3.33.87-4.1 2.37-.27.53-.03 1.17.6 1.4.62.23 1.28.02 1.6-.53.48-.65 1.1-.97 1.9-.97"/></svg>',
+        };
+        const supportedIcons = new Set(Object.keys(icons));
+
+        function onHomeyReady(Homey) {
+            Homey.ready({ height: 140 });
+            const deviceId = Homey.getDeviceIds()[0];
+            const inputScale = document.getElementById('input-scale');
+            const outputScale = document.getElementById('output-scale');
+            const flowBar = document.getElementById('flow-bar');
+            const errorElement = document.getElementById('error');
+
+            function width(value, total) {
+                return total > 0 && value > 0 ? `${value / total * 100}%` : '0%';
+            }
+
+            function formatPower(watts) {
+                const value = Math.abs(Number(watts) || 0);
+                return `${(value / 1000).toFixed(1)} kW`;
+            }
+
+            function formatKwLabel(watts) {
+                return `${(Math.abs(Number(watts) || 0) / 1000).toFixed(1)} kW`;
+            }
+
+            function scaleSegment(item, total, availableWidth) {
+                const segment = document.createElement('div');
+                const pixels = total > 0 ? availableWidth * item.value / total : 0;
+                segment.className = `scale-segment${item.value ? '' : ' hidden'}${pixels < 34 ? ' dot' : ''}${pixels < 12 ? ' none' : ''}`;
+                segment.style.flexBasis = width(item.value, total);
+                segment.title = `${item.label}: ${formatPower(item.value)}`;
+                const line = document.createElement('div');
+                line.className = 'scale-line';
+                const icon = document.createElement('div');
+                icon.className = 'scale-icon';
+                icon.innerHTML = icons[item.icon];
+                line.appendChild(icon);
+                segment.appendChild(line);
+                return segment;
+            }
+
+            function flowSegment(item, total, availableWidth) {
+                const segment = document.createElement('div');
+                const pixels = total > 0 ? availableWidth * item.value / total : 0;
+                segment.className = `flow-segment ${item.className}`;
+                segment.style.width = width(item.value, total);
+                segment.title = item.title || `${item.label}: ${formatPower(item.value)}`;
+                if (pixels > 34 && item.value > 0) {
+                    const primary = document.createElement('span');
+                    primary.textContent = item.primaryLabel || formatKwLabel(item.value);
+                    segment.appendChild(primary);
+                    const secondaryText = item.secondaryLabel;
+                    if (pixels > 50 && secondaryText) {
+                        const secondary = document.createElement('small');
+                        secondary.textContent = secondaryText;
+                        segment.appendChild(secondary);
+                    }
+                }
+                return segment;
+            }
+
+            function vehicleIcon(icon) {
+                return supportedIcons.has(icon) ? icon : 'car';
+            }
+
+            function render(data) {
+                errorElement.hidden = true;
+                const total = data.total > 0 ? data.total : 1;
+                const availableWidth = Math.max(0, flowBar.getBoundingClientRect().width);
+                const inputs = [
+                    { label: 'Solar', icon: 'sun', value: data.pvProduction },
+                    { label: 'Battery discharge', icon: 'battery', value: data.batteryDischarge },
+                    { label: 'Grid import', icon: 'grid', value: data.gridImport },
+                    { label: 'Unknown input', icon: 'unknown', value: data.unknownImport },
+                ];
+                const outputs = [
+                    { label: 'Home', icon: 'home', value: data.homePower },
+                    ...data.loadpoints.map((loadpoint) => ({
+                        label: loadpoint.title,
+                        icon: vehicleIcon(loadpoint.icon),
+                        value: loadpoint.chargePower,
+                        title: [loadpoint.title, loadpoint.chargeLabel].filter(Boolean).join(': '),
+                        primaryLabel: formatKwLabel(loadpoint.chargePower),
+                        secondaryLabel: [
+                            typeof loadpoint.phasesActive === 'number' ? `${loadpoint.phasesActive} phases` : null,
+                            loadpoint.soc !== null ? `${Math.round(loadpoint.soc)}%` : null,
+                        ].filter(Boolean).join(' · '),
+                    })),
+                    { label: 'Battery charge', icon: 'battery', value: data.batteryCharge },
+                    { label: 'Grid export', icon: 'grid', value: data.pvExport },
+                    { label: 'Unknown output', icon: 'unknown', value: data.unknownOutput },
+                ];
+                const bars = data.total > 0 ? [
+                    { label: 'Solar self-consumption', className: 'self-pv', value: data.selfPv },
+                    { label: 'Battery self-consumption', className: 'self-battery', value: data.selfBattery },
+                    { label: 'Grid import', className: 'grid-import', value: data.gridImport },
+                    { label: 'Grid export', className: 'pv-export', value: data.pvExport },
+                    { label: 'Unknown power', className: 'unknown', value: data.unknownPower },
+                ] : [{ label: 'Grid import', className: 'grid-import', value: 1 }];
+
+                inputScale.replaceChildren(...inputs.map((item) => scaleSegment(item, total, availableWidth)));
+                outputScale.replaceChildren(...outputs.map((item) => scaleSegment(item, total, availableWidth)));
+                flowBar.replaceChildren(...bars.map((item) => flowSegment(item, total, availableWidth)));
+            }
+
+            async function update() {
+                if (document.hidden) return;
+                try {
+                    render(await Homey.api('POST', `/refresh?deviceId=${encodeURIComponent(deviceId)}`, {}));
+                } catch (error) {
+                    errorElement.textContent = (error && error.message) || 'Could not reach evcc';
+                    errorElement.hidden = false;
+                }
+            }
+
+            window.addEventListener('resize', () => {
+                window.clearTimeout(window.energyFlowResizeTimer);
+                window.energyFlowResizeTimer = window.setTimeout(update, 150);
+            });
+            update();
+            setInterval(update, 10000);
+        }
+    </script>
+</body>
+
+</html>

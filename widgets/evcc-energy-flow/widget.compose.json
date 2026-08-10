@@ -1,0 +1,25 @@
+{
+  "name": {
+    "en": "Energy flow"
+  },
+  "height": 140,
+  "settings": [],
+  "devices": {
+    "type": "app",
+    "singular": true,
+    "filter": {
+      "class": "other",
+      "capabilities": "evcc_solar_power,evcc_grid_power,evcc_home_power"
+    }
+  },
+  "api": {
+    "getEnergyFlow": {
+      "method": "GET",
+      "path": "/"
+    },
+    "refresh": {
+      "method": "POST",
+      "path": "/refresh"
+    }
+  }
+}

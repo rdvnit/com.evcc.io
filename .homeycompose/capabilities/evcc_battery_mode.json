@@ -1,0 +1,35 @@
+{
+  "type": "enum",
+  "title": {
+    "en": "Battery mode"
+  },
+  "getable": true,
+  "setable": true,
+  "uiComponent": "picker",
+  "values": [
+    {
+      "id": "unknown",
+      "title": {
+        "en": "Auto"
+      }
+    },
+    {
+      "id": "normal",
+      "title": {
+        "en": "Normal"
+      }
+    },
+    {
+      "id": "hold",
+      "title": {
+        "en": "Hold"
+      }
+    },
+    {
+      "id": "charge",
+      "title": {
+        "en": "Charge"
+      }
+    }
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "type": "boolean",
+  "title": {
+    "en": "Reset external battery control"
+  },
+  "getable": false,
+  "setable": true,
+  "uiComponent": "button",
+  "insights": false
+}
