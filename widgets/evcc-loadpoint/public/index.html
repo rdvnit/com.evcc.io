@@ -2,7 +2,7 @@
 
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
-    <link href="./style.css?v=8" rel="stylesheet" />
+    <link href="./style.css?v=12" rel="stylesheet" />
 </head>
 
 <body class="homey-widget-full">
@@ -26,9 +26,16 @@
             </div>
             <div id="progress" class="progress" hidden>
                 <div id="progress-fill" class="progress-fill"></div>
+                <div id="progress-marker" class="progress-marker" hidden></div>
             </div>
 
-            <div class="power"><strong id="power-value">—</strong><span id="power-unit"></span></div>
+            <div class="power">
+                <div class="power-value">
+                    <strong id="power-value">—</strong><span id="power-unit"></span>
+                </div>
+                <span id="power-sep" class="detail-item sep" hidden></span>
+                <div id="power-details" class="power-details" hidden></div>
+            </div>
             <p id="error" class="error" hidden></p>
         </section>
 
@@ -50,8 +57,11 @@
                 metricUnit: document.getElementById('metric-unit'),
                 progress: document.getElementById('progress'),
                 progressFill: document.getElementById('progress-fill'),
+                progressMarker: document.getElementById('progress-marker'),
                 powerValue: document.getElementById('power-value'),
                 powerUnit: document.getElementById('power-unit'),
+                powerSep: document.getElementById('power-sep'),
+                powerDetails: document.getElementById('power-details'),
                 modes: document.getElementById('modes'),
                 refresh: document.getElementById('refresh'),
                 error: document.getElementById('error'),
@@ -61,10 +71,7 @@
                 const value = Number(watts) || 0;
                 if (Math.abs(value) >= 1000) {
                     return {
-                        value: (value / 1000).toLocaleString(undefined, {
-                            minimumFractionDigits: 1,
-                            maximumFractionDigits: 1
-                        }),
+                        value: Math.round(value / 1000).toLocaleString(),
                         unit: 'kW'
                     };
                 }
@@ -72,6 +79,56 @@
                     value: Math.round(value).toLocaleString(),
                     unit: 'W'
                 };
+            }
+
+            function phaseIconSvg(phases) {
+                const lines = phases === 3
+                    ? '<line x1="2.5" y1="3" x2="2.5" y2="11" /><line x1="7" y1="1.5" x2="7" y2="12.5" /><line x1="11.5" y1="3" x2="11.5" y2="11" />'
+                    : phases === 2
+                        ? '<line x1="4.5" y1="3" x2="4.5" y2="11" /><line x1="9.5" y1="3" x2="9.5" y2="11" />'
+                        : '<line x1="7" y1="1.5" x2="7" y2="12.5" />';
+                return `<svg viewBox="0 0 14 14" aria-hidden="true">${lines}</svg>`;
+            }
+
+            function detailItem(inner) {
+                const item = document.createElement('span');
+                item.className = 'detail-item';
+                item.innerHTML = inner;
+                return item;
+            }
+
+            function separator() {
+                const sep = document.createElement('span');
+                sep.className = 'detail-item sep';
+                return sep;
+            }
+
+            let modeButtons = [];
+
+            function buildModes(modes) {
+                modeButtons = modes.map((mode) => {
+                    const button = document.createElement('button');
+                    button.type = 'button';
+                    button.className = 'mode';
+                    button.dataset.modeId = mode.id;
+                    button.textContent = mode.label;
+                    button.setAttribute('aria-pressed', 'false');
+                    button.addEventListener('click', async () => {
+                        if (button.dataset.modeId === elements.modes.dataset.selected || button.disabled) return;
+                        setBusy(true);
+                        try {
+                            render(await Homey.api('POST', `/mode?deviceId=${encodeURIComponent(deviceId)}`, {
+                                mode: button.dataset.modeId
+                            }));
+                        } catch (error) {
+                            showError(error);
+                        } finally {
+                            setBusy(false);
+                        }
+                    });
+                    return button;
+                });
+                elements.modes.replaceChildren(...modeButtons);
             }
 
             function render(data) {
@@ -86,47 +143,66 @@
                     elements.progress.hidden = false;
                     elements.progressFill.style.width = `${Math.max(0, Math.min(100, data.soc))}%`;
                     elements.progressFill.classList.toggle('charging', data.charging);
+                    if (typeof data.targetSoc === 'number') {
+                        elements.progressMarker.hidden = false;
+                        elements.progressMarker.style.left = `${Math.max(0, Math.min(99, data.targetSoc))}%`;
+                    } else {
+                        elements.progressMarker.hidden = true;
+                    }
                 } else {
-                    elements.metricValue.textContent = Number(data.sessionEnergy || 0).toLocaleString(undefined, {
-                        minimumFractionDigits: 1,
-                        maximumFractionDigits: 1
-                    });
+                    elements.metricValue.textContent = Math.round(Number(data.sessionEnergy) || 0).toLocaleString();
                     elements.metricUnit.textContent = 'kWh';
                     elements.progress.hidden = true;
                     elements.progressFill.classList.remove('charging');
+                    elements.progressMarker.hidden = true;
                 }
 
                 const power = formatPower(data.power);
                 elements.powerValue.textContent = power.value;
                 elements.powerUnit.textContent = power.unit;
 
-                elements.modes.replaceChildren(...data.modes.map((mode) => {
-                    const button = document.createElement('button');
-                    button.type = 'button';
-                    button.className = `mode${mode.id === data.mode ? ' selected' : ''}`;
-                    button.textContent = mode.label;
-                    button.setAttribute('aria-pressed', String(mode.id === data.mode));
-                    button.addEventListener('click', async() => {
-                        if (button.classList.contains('selected')) return;
-                        setBusy(true);
-                        try {
-                            render(await Homey.api('POST', `/mode?deviceId=${encodeURIComponent(deviceId)}`, {
-                                mode: mode.id
-                            }));
-                        } catch (error) {
-                            showError(error);
-                        } finally {
-                            setBusy(false);
-                        }
-                    });
-                    return button;
-                }));
+                const details = [];
+                if (typeof data.phases === 'number' && [1, 2, 3].includes(data.phases)) {
+                    const phase = document.createElement('span');
+                    phase.className = 'detail-item phase-icon';
+                    phase.title = `${data.phases} phase${data.phases === 1 ? '' : 's'}`;
+                    phase.innerHTML = phaseIconSvg(data.phases);
+                    details.push(phase);
+                }
+                if (typeof data.sessionEnergy === 'number' && data.sessionEnergy > 0) {
+                    const charged = detailItem(`<strong>${Math.round(data.sessionEnergy).toLocaleString()}</strong><span class="detail-unit">kWh</span>`);
+                    charged.title = 'Charged this session';
+                    details.push(charged);
+                }
+                if (data.remaining && data.remaining.value) {
+                    const unit = data.remaining.unit ? `<span class="detail-unit">${data.remaining.unit}</span>` : '';
+                    const remaining = detailItem(`<strong>${data.remaining.value}</strong>${unit}`);
+                    remaining.title = 'Time until full';
+                    details.push(remaining);
+                }
+
+                const nodes = [];
+                details.forEach((item) => {
+                    if (nodes.length > 0) nodes.push(separator());
+                    nodes.push(item);
+                });
+                elements.powerSep.hidden = nodes.length === 0;
+                elements.powerDetails.replaceChildren(...nodes);
+                elements.powerDetails.hidden = nodes.length === 0;
+
+                if (modeButtons.length === 0) buildModes(data.modes);
+                elements.modes.dataset.selected = data.mode;
+                modeButtons.forEach((button) => {
+                    const selected = button.dataset.modeId === data.mode;
+                    button.classList.toggle('selected', selected);
+                    button.setAttribute('aria-pressed', String(selected));
+                });
             }
 
             function setBusy(busy) {
                 elements.refresh.classList.toggle('spinning', busy);
                 elements.refresh.disabled = busy;
-                elements.modes.querySelectorAll('button').forEach((button) => {
+                modeButtons.forEach((button) => {
                     button.disabled = busy;
                 });
             }
@@ -138,17 +214,21 @@
 
             async function update(path = '/refresh') {
                 if (document.hidden) return;
-                setBusy(true);
                 try {
                     render(await Homey.api(path === '/' ? 'GET' : 'POST', `${path}?deviceId=${encodeURIComponent(deviceId)}`, {}));
                 } catch (error) {
                     showError(error);
-                } finally {
-                    setBusy(false);
                 }
             }
 
-            elements.refresh.addEventListener('click', () => update('/refresh'));
+            elements.refresh.addEventListener('click', async () => {
+                setBusy(true);
+                try {
+                    await update('/refresh');
+                } finally {
+                    setBusy(false);
+                }
+            });
             update('/refresh');
             setInterval(update, 10000);
         }

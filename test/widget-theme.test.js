@@ -15,6 +15,11 @@ test('primary widget text uses a namespaced Homey-aware color token', () => {
   assert.doesNotMatch(css, /color-scheme:\s*light/);
 });
 
+test('dark progress track and phase icon use theme-safe widget tokens', () => {
+  assert.match(css, /\.homey-dark-mode\s*{[^}]*--evcc-progress-track: #010322/s);
+  assert.match(css, /\.phase-icon svg line\s*{[^}]*stroke: var\(--evcc-primary-text\)/s);
+});
+
 test('widget loads the refactored stylesheet revision', () => {
-  assert.match(html, /style\.css\?v=8/);
+  assert.match(html, /style\.css\?v=12/);
 });

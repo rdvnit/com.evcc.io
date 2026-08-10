@@ -54,9 +54,11 @@ class LoadpointDevice extends Homey.Device {
       await this._applyState(lp);
 
       if (!this.getAvailable()) await this.setAvailable();
+      return lp;
     } catch (err) {
       this.error('evcc poll error:', err.message);
       await this.setUnavailable(err.message).catch(() => {});
+      return null;
     }
   }
 
