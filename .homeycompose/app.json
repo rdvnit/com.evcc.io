@@ -1,6 +1,6 @@
 {
   "id": "com.evcc.io",
-  "version": "1.0.14",
+  "version": "1.1.0",
   "compatibility": ">=12.3.0",
   "sdk": 3,
   "platforms": [
@@ -37,9 +37,9 @@
     "name": "evcc Homey App"
   },
   "bugs": {
-    "url": "https://github.com/rdmn7/com.evcc.io/issues"
+    "url": "https://github.com/rdvnit/com.evcc.io/issues"
   },
-  "homepage": "https://github.com/rdmn7/com.evcc.io",
-  "source": "https://github.com/rdmn7/com.evcc.io",
-  "support": "https://github.com/rdmn7/com.evcc.io/issues"
+  "homepage": "https://github.com/rdvnit/com.evcc.io",
+  "source": "https://github.com/rdvnit/com.evcc.io",
+  "support": "https://github.com/rdvnit/com.evcc.io/issues"
 }

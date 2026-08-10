@@ -7,5 +7,8 @@
   },
   "1.0.14": {
     "en": "Fixed charging session energy being reported in Wh instead of kWh, causing incorrect readings on the Homey Energy dashboard."
+  },
+  "1.1.0": {
+    "en": "Added dashboard widgets for live site energy flow and EV charging points, including charging modes, target charge level, session energy, remaining time, and improved light and dark themes."
   }
 }
