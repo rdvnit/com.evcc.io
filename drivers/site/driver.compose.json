@@ -1,0 +1,89 @@
+{
+  "name": {
+    "en": "evcc site"
+  },
+  "class": "other",
+  "platforms": [
+    "local"
+  ],
+  "connectivity": [
+    "lan"
+  ],
+  "capabilities": [
+    "evcc_solar_power",
+    "evcc_grid_power",
+    "evcc_home_power"
+  ],
+  "capabilitiesOptions": {
+    "evcc_solar_power": {
+      "title": {
+        "en": "Solar production"
+      }
+    },
+    "evcc_grid_power": {
+      "title": {
+        "en": "Grid power"
+      }
+    },
+    "evcc_home_power": {
+      "title": {
+        "en": "Home consumption"
+      }
+    }
+  },
+  "images": {
+    "small": "/drivers/site/assets/images/small.png",
+    "large": "/drivers/site/assets/images/large.png",
+    "xlarge": "/drivers/site/assets/images/xlarge.png"
+  },
+  "pair": [
+    {
+      "id": "connect",
+      "navigation": {
+        "next": "list_devices"
+      }
+    },
+    {
+      "id": "list_devices",
+      "template": "list_devices",
+      "navigation": {
+        "next": "add_devices"
+      }
+    },
+    {
+      "id": "add_devices",
+      "template": "add_devices"
+    }
+  ],
+  "settings": [
+    {
+      "id": "host",
+      "type": "text",
+      "label": {
+        "en": "evcc URL"
+      },
+      "value": "http://",
+      "hint": {
+        "en": "Base URL of your evcc instance, e.g. http://192.168.1.50:7070"
+      }
+    },
+    {
+      "id": "password",
+      "type": "password",
+      "label": {
+        "en": "Password (optional)"
+      },
+      "value": ""
+    },
+    {
+      "id": "pollInterval",
+      "type": "number",
+      "label": {
+        "en": "Update interval (seconds)"
+      },
+      "value": 10,
+      "min": 5,
+      "max": 300
+    }
+  ]
+}

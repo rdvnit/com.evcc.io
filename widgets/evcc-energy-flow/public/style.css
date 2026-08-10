@@ -1,0 +1,219 @@
+:root {
+    --evcc-green: #0fde41;
+    --evcc-battery: #0ba631;
+    --evcc-yellow: #faf000;
+    --evcc-grid: #28293e;
+    --evcc-gray: #93949e;
+    --evcc-background: var(--homey-background-color, #f3f3f7);
+    --evcc-text: var(--homey-text-color, #28293e);
+    --evcc-bar-text: #28293e;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+html,
+body {
+    width: 100%;
+    height: 100%;
+    touch-action: manipulation;
+}
+
+body {
+    margin: 0;
+    overflow: hidden;
+    color: var(--evcc-text);
+    background: transparent;
+    font-family: Montserrat, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+.energy-flow {
+    position: relative;
+    display: flex;
+    width: 100%;
+    height: 100%;
+    flex-direction: column;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px 16px;
+}
+
+.scale-row {
+    display: flex;
+    width: 100%;
+    height: 28px;
+}
+
+.scale-bars {
+    display: flex;
+    min-width: 0;
+    flex: 1;
+}
+
+.scale-name {
+    width: 19px;
+    flex: 0 0 19px;
+    color: var(--evcc-gray);
+    font-size: 12px;
+    line-height: 1;
+    text-align: center;
+    writing-mode: vertical-rl;
+}
+
+.scale-segment {
+    width: 0;
+    padding: 8px 0;
+    overflow: hidden;
+    opacity: 1;
+    transition: flex-basis .5s linear, opacity .25s ease;
+}
+
+.scale-segment.hidden {
+    opacity: 0;
+}
+
+.scale-line {
+    display: flex;
+    height: 12px;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--evcc-gray);
+    white-space: nowrap;
+}
+
+.top .scale-line {
+    border-bottom: 0;
+    border-radius: 8px 8px 0 0;
+}
+
+.bottom .scale-line {
+    border-top: 0;
+    border-radius: 0 0 8px 8px;
+}
+
+.scale-icon {
+    display: flex;
+    width: 24px;
+    height: 24px;
+    align-items: center;
+    justify-content: center;
+    border: 3px solid var(--evcc-background);
+    color: var(--evcc-text);
+    background: var(--evcc-background);
+    transition: transform .1s linear, border-radius .5s linear;
+}
+
+.top .scale-icon {
+    margin-top: -10px;
+}
+
+.bottom .scale-icon {
+    margin-top: 10px;
+}
+
+.scale-icon svg {
+    width: 18px;
+    height: 18px;
+    fill: currentColor;
+}
+
+.scale-segment.dot .scale-icon {
+    border-width: 18px;
+    border-radius: 50%;
+    background: var(--evcc-text);
+    transform: scale(.1667);
+}
+
+.scale-segment.none .scale-icon {
+    transform: scale(0);
+}
+
+.flow-bar {
+    display: flex;
+    width: calc(100% - 19px);
+    height: 34px;
+    overflow: hidden;
+    border-radius: 8px;
+}
+
+.flow-segment {
+    display: flex;
+    width: 0;
+    min-width: 0;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    transition: width .5s linear;
+}
+
+.flow-segment span {
+    margin: 0 2px;
+    overflow: hidden;
+    font-size: 11px;
+    font-weight: 600;
+    text-overflow: clip;
+    white-space: nowrap;
+    line-height: 1.1;
+}
+
+.flow-segment small {
+    margin: 0 2px;
+    overflow: hidden;
+    font-size: 9px;
+    font-weight: 500;
+    opacity: .9;
+    text-overflow: clip;
+    white-space: nowrap;
+    line-height: 1.1;
+}
+
+.self-pv {
+    color: var(--evcc-bar-text);
+    background: var(--evcc-green);
+}
+
+.self-battery {
+    color: var(--evcc-bar-text);
+    background: var(--evcc-battery);
+}
+
+.grid-import {
+    color: #fff;
+    background: var(--evcc-grid);
+}
+
+.pv-export {
+    color: var(--evcc-bar-text);
+    background: var(--evcc-yellow);
+}
+
+.unknown {
+    color: var(--evcc-bar-text);
+    background: var(--evcc-gray);
+}
+
+.error {
+    position: absolute;
+    right: 16px;
+    bottom: 5px;
+    left: 16px;
+    margin: 0;
+    overflow: hidden;
+    color: #c53a3a;
+    font-size: 10px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.homey-dark-mode {
+    --evcc-grid: #93949e;
+    --evcc-gray: #b5b6c3;
+    --evcc-background: var(--homey-background-color, #010322);
+    --evcc-text: var(--homey-text-color, #fff);
+}
+
+.homey-dark-mode .grid-import {
+    color: var(--evcc-bar-text);
+}

@@ -47,7 +47,7 @@ class SiteDevice extends Homey.Device {
   async _poll() {
     try {
       const rawState = await this._api.getState();
-      const { site } = normalizeState(rawState);
+      const { site, loadpoints } = normalizeState(rawState);
 
       await this._syncCapability('evcc_solar_power', true);
       await this._syncCapability('evcc_home_power', true);
@@ -63,6 +63,7 @@ class SiteDevice extends Homey.Device {
       await this._safeSet('evcc_home_power', site.homePower ?? 0);
 
       if (!this.getAvailable()) await this.setAvailable();
+      return { site, loadpoints };
     } catch (err) {
       this.error('evcc poll error:', err.message);
       await this.setUnavailable(err.message).catch(() => {});

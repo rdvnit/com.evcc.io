@@ -1,0 +1,158 @@
+<html>
+
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+    <link href="./style.css?v=8" rel="stylesheet" />
+</head>
+
+<body class="homey-widget-full">
+    <main class="loadpoint-card" aria-live="polite">
+        <section class="loadpoint-data">
+            <header class="card-header">
+                <div class="title-block">
+                    <h1 id="device-name">Charging point</h1>
+                    <div id="status" class="status disconnected">
+                        <span class="status-dot"></span>
+                        <span id="status-label">Loading…</span>
+                    </div>
+                </div>
+                <button id="refresh" class="refresh" type="button" aria-label="Refresh">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17.65 6.35A7.95 7.95 0 0 0 12 4a8 8 0 1 0 7.75 10h-2.1A6 6 0 1 1 12 6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35Z"/></svg>
+          </button>
+            </header>
+
+            <div class="metric">
+                <strong id="metric-value">—</strong><span id="metric-unit"></span>
+            </div>
+            <div id="progress" class="progress" hidden>
+                <div id="progress-fill" class="progress-fill"></div>
+            </div>
+
+            <div class="power"><strong id="power-value">—</strong><span id="power-unit"></span></div>
+            <p id="error" class="error" hidden></p>
+        </section>
+
+        <nav id="modes" class="mode-selector" aria-label="Charging mode"></nav>
+    </main>
+
+    <script type="text/javascript">
+        function onHomeyReady(Homey) {
+            Homey.ready({
+                height: 140
+            });
+
+            const deviceId = Homey.getDeviceIds()[0];
+            const elements = {
+                name: document.getElementById('device-name'),
+                status: document.getElementById('status'),
+                statusLabel: document.getElementById('status-label'),
+                metricValue: document.getElementById('metric-value'),
+                metricUnit: document.getElementById('metric-unit'),
+                progress: document.getElementById('progress'),
+                progressFill: document.getElementById('progress-fill'),
+                powerValue: document.getElementById('power-value'),
+                powerUnit: document.getElementById('power-unit'),
+                modes: document.getElementById('modes'),
+                refresh: document.getElementById('refresh'),
+                error: document.getElementById('error'),
+            };
+
+            function formatPower(watts) {
+                const value = Number(watts) || 0;
+                if (Math.abs(value) >= 1000) {
+                    return {
+                        value: (value / 1000).toLocaleString(undefined, {
+                            minimumFractionDigits: 1,
+                            maximumFractionDigits: 1
+                        }),
+                        unit: 'kW'
+                    };
+                }
+                return {
+                    value: Math.round(value).toLocaleString(),
+                    unit: 'W'
+                };
+            }
+
+            function render(data) {
+                elements.error.hidden = true;
+                elements.name.textContent = data.name || 'Charging point';
+                elements.status.className = `status ${data.charging ? 'charging' : data.connected ? 'connected' : 'disconnected'}`;
+                elements.statusLabel.textContent = data.available === false ? 'Unavailable' : data.status;
+
+                if (typeof data.soc === 'number') {
+                    elements.metricValue.textContent = Math.round(data.soc).toLocaleString();
+                    elements.metricUnit.textContent = '%';
+                    elements.progress.hidden = false;
+                    elements.progressFill.style.width = `${Math.max(0, Math.min(100, data.soc))}%`;
+                    elements.progressFill.classList.toggle('charging', data.charging);
+                } else {
+                    elements.metricValue.textContent = Number(data.sessionEnergy || 0).toLocaleString(undefined, {
+                        minimumFractionDigits: 1,
+                        maximumFractionDigits: 1
+                    });
+                    elements.metricUnit.textContent = 'kWh';
+                    elements.progress.hidden = true;
+                    elements.progressFill.classList.remove('charging');
+                }
+
+                const power = formatPower(data.power);
+                elements.powerValue.textContent = power.value;
+                elements.powerUnit.textContent = power.unit;
+
+                elements.modes.replaceChildren(...data.modes.map((mode) => {
+                    const button = document.createElement('button');
+                    button.type = 'button';
+                    button.className = `mode${mode.id === data.mode ? ' selected' : ''}`;
+                    button.textContent = mode.label;
+                    button.setAttribute('aria-pressed', String(mode.id === data.mode));
+                    button.addEventListener('click', async() => {
+                        if (button.classList.contains('selected')) return;
+                        setBusy(true);
+                        try {
+                            render(await Homey.api('POST', `/mode?deviceId=${encodeURIComponent(deviceId)}`, {
+                                mode: mode.id
+                            }));
+                        } catch (error) {
+                            showError(error);
+                        } finally {
+                            setBusy(false);
+                        }
+                    });
+                    return button;
+                }));
+            }
+
+            function setBusy(busy) {
+                elements.refresh.classList.toggle('spinning', busy);
+                elements.refresh.disabled = busy;
+                elements.modes.querySelectorAll('button').forEach((button) => {
+                    button.disabled = busy;
+                });
+            }
+
+            function showError(error) {
+                elements.error.textContent = (error && error.message) || 'Could not reach evcc';
+                elements.error.hidden = false;
+            }
+
+            async function update(path = '/refresh') {
+                if (document.hidden) return;
+                setBusy(true);
+                try {
+                    render(await Homey.api(path === '/' ? 'GET' : 'POST', `${path}?deviceId=${encodeURIComponent(deviceId)}`, {}));
+                } catch (error) {
+                    showError(error);
+                } finally {
+                    setBusy(false);
+                }
+            }
+
+            elements.refresh.addEventListener('click', () => update('/refresh'));
+            update('/refresh');
+            setInterval(update, 10000);
+        }
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,15 @@
+{
+  "type": "number",
+  "title": {
+    "en": "Vehicle range"
+  },
+  "units": {
+    "en": "km"
+  },
+  "decimals": 0,
+  "getable": true,
+  "setable": false,
+  "uiComponent": "sensor",
+  "insights": true,
+  "icon": "/assets/capabilities/evcc_range.svg"
+}

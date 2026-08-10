@@ -1,0 +1,17 @@
+{
+  "type": "number",
+  "title": {
+    "en": "Grid residual power"
+  },
+  "units": {
+    "en": "W"
+  },
+  "min": -5000,
+  "max": 5000,
+  "step": 100,
+  "decimals": 0,
+  "getable": true,
+  "setable": true,
+  "uiComponent": "slider",
+  "insights": false
+}

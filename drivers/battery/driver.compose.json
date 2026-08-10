@@ -1,0 +1,145 @@
+{
+  "name": {
+    "en": "Home battery"
+  },
+  "class": "battery",
+  "platforms": [
+    "local"
+  ],
+  "connectivity": [
+    "lan"
+  ],
+  "capabilities": [
+    "measure_power",
+    "measure_battery",
+    "evcc_battery_discharge_control",
+    "evcc_battery_mode",
+    "evcc_battery_buffer_soc",
+    "evcc_battery_buffer_start_soc",
+    "evcc_battery_priority_soc",
+    "evcc_grid_residual_power",
+    "evcc_battery_grid_charge_limit",
+    "evcc_battery_control_reset"
+  ],
+  "capabilitiesOptions": {
+    "measure_power": {
+      "title": {
+        "en": "Home battery power"
+      }
+    },
+    "measure_battery": {
+      "title": {
+        "en": "Home battery level"
+      }
+    },
+    "evcc_battery_discharge_control": {
+      "title": {
+        "en": "Allow battery discharge"
+      }
+    },
+    "evcc_battery_mode": {
+      "title": {
+        "en": "Battery mode"
+      }
+    },
+    "evcc_battery_buffer_soc": {
+      "title": {
+        "en": "Battery buffer SoC"
+      }
+    },
+    "evcc_battery_buffer_start_soc": {
+      "title": {
+        "en": "Buffer start SoC"
+      }
+    },
+    "evcc_battery_priority_soc": {
+      "title": {
+        "en": "Battery priority SoC"
+      }
+    },
+    "evcc_grid_residual_power": {
+      "title": {
+        "en": "Grid residual power"
+      }
+    },
+    "evcc_battery_grid_charge_limit": {
+      "title": {
+        "en": "Battery grid charge limit"
+      }
+    },
+    "evcc_battery_control_reset": {
+      "title": {
+        "en": "Reset external battery control"
+      }
+    }
+  },
+  "energy": {
+    "homeBattery": true
+  },
+  "images": {
+    "small": "/drivers/battery/assets/images/small.png",
+    "large": "/drivers/battery/assets/images/large.png",
+    "xlarge": "/drivers/battery/assets/images/xlarge.png"
+  },
+  "pair": [
+    {
+      "id": "connect",
+      "navigation": {
+        "next": "list_devices"
+      }
+    },
+    {
+      "id": "list_devices",
+      "template": "list_devices",
+      "navigation": {
+        "next": "add_devices"
+      }
+    },
+    {
+      "id": "add_devices",
+      "template": "add_devices"
+    }
+  ],
+  "settings": [
+    {
+      "id": "host",
+      "type": "text",
+      "label": {
+        "en": "evcc URL"
+      },
+      "value": "http://",
+      "hint": {
+        "en": "Base URL of your evcc instance, e.g. http://192.168.1.50:7070"
+      }
+    },
+    {
+      "id": "password",
+      "type": "password",
+      "label": {
+        "en": "Password (optional)"
+      },
+      "value": ""
+    },
+    {
+      "id": "pollInterval",
+      "type": "number",
+      "label": {
+        "en": "Update interval (seconds)"
+      },
+      "value": 10,
+      "min": 5,
+      "max": 300
+    },
+    {
+      "id": "enabled",
+      "type": "checkbox",
+      "label": {
+        "en": "Show home battery"
+      },
+      "value": true,
+      "hint": {
+        "en": "Disable this to hide the battery capabilities without removing the device."
+      }
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "type": "enum",
+  "title": {
+    "en": "Charging mode"
+  },
+  "getable": true,
+  "setable": true,
+  "uiComponent": "picker",
+  "values": [
+    {
+      "id": "off",
+      "title": {
+        "en": "Off"
+      }
+    },
+    {
+      "id": "pv",
+      "title": {
+        "en": "Solar only"
+      }
+    },
+    {
+      "id": "minpv",
+      "title": {
+        "en": "Min + Solar"
+      }
+    },
+    {
+      "id": "now",
+      "title": {
+        "en": "Fast"
+      }
+    }
+  ]
+}
