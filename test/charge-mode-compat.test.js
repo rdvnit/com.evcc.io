@@ -7,6 +7,8 @@ const { normalizeLoadpoint } = require('../lib/normalize');
 const fs = require('node:fs');
 
 const deviceSource = fs.readFileSync('drivers/loadpoint/device.js', 'utf8');
+const appSource = fs.readFileSync('app.js', 'utf8');
+const loadpointFlows = JSON.parse(fs.readFileSync('drivers/loadpoint/driver.flow.compose.json', 'utf8'));
 
 test('detects legacy evcc by absence of alwaysCharge', () => {
   const lp = normalizeLoadpoint({ mode: 'minpv' }, 1);
@@ -64,4 +66,22 @@ test('mode changes do not clear the separate Always charge preference', () => {
 
   assert.match(setChargeMode, /setLoadpointMode/);
   assert.doesNotMatch(setChargeMode, /setLoadpointAlwaysCharge/);
+});
+
+test('adds separate Always charge Flow cards without replacing existing charge-mode cards', () => {
+  assert.ok(loadpointFlows.triggers.some(({ id }) => id === 'charge_mode_changed'));
+  assert.ok(loadpointFlows.conditions.some(({ id }) => id === 'charge_mode_is'));
+  assert.ok(loadpointFlows.actions.some(({ id }) => id === 'set_charge_mode'));
+
+  const trigger = loadpointFlows.triggers.find(({ id }) => id === 'always_charge_changed');
+  const condition = loadpointFlows.conditions.find(({ id }) => id === 'always_charge_is');
+  const action = loadpointFlows.actions.find(({ id }) => id === 'set_always_charge');
+  const states = ['off', 'on', 'once'];
+
+  assert.deepEqual(trigger.args[0].values.map(({ id }) => id), states);
+  assert.deepEqual(condition.args[0].values.map(({ id }) => id), states);
+  assert.deepEqual(action.args[0].values.map(({ id }) => id), states);
+  assert.match(appSource, /getActionCard\('set_always_charge'\)/);
+  assert.match(appSource, /getConditionCard\('always_charge_is'\)/);
+  assert.match(deviceSource, /getDeviceTriggerCard\('always_charge_changed'\)/);
 });

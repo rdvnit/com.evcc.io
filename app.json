@@ -210,6 +210,55 @@
         ]
       },
       {
+        "id": "always_charge_changed",
+        "title": {
+          "en": "Always charge changed"
+        },
+        "titleFormatted": {
+          "en": "Always charge changed to [[state]]"
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=loadpoint"
+          },
+          {
+            "name": "state",
+            "type": "dropdown",
+            "values": [
+              {
+                "id": "off",
+                "label": {
+                  "en": "Off"
+                }
+              },
+              {
+                "id": "on",
+                "label": {
+                  "en": "Always"
+                }
+              },
+              {
+                "id": "once",
+                "label": {
+                  "en": "Once"
+                }
+              }
+            ]
+          }
+        ],
+        "tokens": [
+          {
+            "name": "state",
+            "type": "string",
+            "title": {
+              "en": "State"
+            }
+          }
+        ]
+      },
+      {
         "id": "vehicle_connected",
         "title": {
           "en": "Vehicle connected"
@@ -404,6 +453,46 @@
                 "id": "now",
                 "label": {
                   "en": "Fast"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "always_charge_is",
+        "title": {
+          "en": "Always charge !{{is|is not}}"
+        },
+        "titleFormatted": {
+          "en": "Always charge !{{is|is not}} [[state]]"
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=loadpoint"
+          },
+          {
+            "name": "state",
+            "type": "dropdown",
+            "values": [
+              {
+                "id": "off",
+                "label": {
+                  "en": "Off"
+                }
+              },
+              {
+                "id": "on",
+                "label": {
+                  "en": "Always"
+                }
+              },
+              {
+                "id": "once",
+                "label": {
+                  "en": "Once"
                 }
               }
             ]
@@ -693,6 +782,46 @@
                 "id": "now",
                 "label": {
                   "en": "Fast"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "set_always_charge",
+        "title": {
+          "en": "Set Always charge"
+        },
+        "titleFormatted": {
+          "en": "Set Always charge to [[state]]"
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=loadpoint"
+          },
+          {
+            "name": "state",
+            "type": "dropdown",
+            "values": [
+              {
+                "id": "off",
+                "label": {
+                  "en": "Off"
+                }
+              },
+              {
+                "id": "on",
+                "label": {
+                  "en": "Always"
+                }
+              },
+              {
+                "id": "once",
+                "label": {
+                  "en": "Once"
                 }
               }
             ]

@@ -103,6 +103,12 @@ class LoadpointDevice extends Homey.Device {
         .catch((err) => this.error(err));
     }
 
+    if (prev.alwaysCharge !== undefined && prev.alwaysCharge !== lp.alwaysCharge) {
+      flow.getDeviceTriggerCard('always_charge_changed')
+        .trigger(this, { state: lp.alwaysCharge }, { state: lp.alwaysCharge })
+        .catch((err) => this.error(err));
+    }
+
     if (prev.connected !== undefined && prev.connected !== lp.connected) {
       const cardId = lp.connected ? 'vehicle_connected' : 'vehicle_disconnected';
       flow.getDeviceTriggerCard(cardId).trigger(this).catch((err) => this.error(err));
@@ -133,6 +139,10 @@ class LoadpointDevice extends Homey.Device {
 
   _homeyChargeMode(lp) {
     return lp && (lp.homeyMode || lp.mode);
+  }
+
+  getAlwaysCharge() {
+    return this._prevState.alwaysCharge;
   }
 
   async setAlwaysCharge(state) {

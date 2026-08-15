@@ -18,6 +18,9 @@ class EvccApp extends Homey.App {
     flow.getActionCard('set_charge_mode')
       .registerRunListener(async (args) => args.device.setChargeMode(args.mode));
 
+    flow.getActionCard('set_always_charge')
+      .registerRunListener(async (args) => args.device.setAlwaysCharge(args.state));
+
     flow.getActionCard('set_target_soc')
       .registerRunListener(async (args) => args.device.setTargetSoc(args.soc));
 
@@ -53,6 +56,9 @@ class EvccApp extends Homey.App {
 
     flow.getConditionCard('charge_mode_is')
       .registerRunListener(async (args) => args.device.getCapabilityValue('evcc_charge_mode') === args.mode);
+
+    flow.getConditionCard('always_charge_is')
+      .registerRunListener(async (args) => args.device.getAlwaysCharge() === args.state);
 
     flow.getConditionCard('is_charging')
       .registerRunListener(async (args) => Boolean(args.device.getCapabilityValue('evcc_charging')));
