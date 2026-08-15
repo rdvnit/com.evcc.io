@@ -76,7 +76,7 @@ class LoadpointDevice extends Homey.Device {
   async _applyState(lp) {
     const prev = this._prevState;
 
-    await this._safeSet('evcc_charge_mode', lp.mode);
+    await this._safeSet('evcc_charge_mode', this._homeyChargeMode(lp));
     await this._safeSet('evcc_target_soc', typeof lp.targetSoc === 'number' ? lp.targetSoc / 100 : null);
     // evcc only has live vehicle telemetry while a car is connected; when
     // disconnected it reports soc/range as 0 placeholders, not real values,
@@ -95,9 +95,11 @@ class LoadpointDevice extends Homey.Device {
 
     const flow = this.homey.flow;
 
-    if (prev.mode !== undefined && prev.mode !== lp.mode) {
+    const previousHomeyMode = this._homeyChargeMode(prev);
+    const homeyMode = this._homeyChargeMode(lp);
+    if (previousHomeyMode !== undefined && previousHomeyMode !== homeyMode) {
       flow.getDeviceTriggerCard('charge_mode_changed')
-        .trigger(this, { mode: lp.mode }, { mode: lp.mode })
+        .trigger(this, { mode: homeyMode }, { mode: homeyMode })
         .catch((err) => this.error(err));
     }
 
@@ -126,7 +128,19 @@ class LoadpointDevice extends Homey.Device {
 
   async setChargeMode(mode) {
     await this._api.setLoadpointMode(this._loadpointIndex, mode);
-    await this._safeSet('evcc_charge_mode', mode);
+    await this._poll();
+  }
+
+  _homeyChargeMode(lp) {
+    return lp && (lp.homeyMode || lp.mode);
+  }
+
+  async setAlwaysCharge(state) {
+    if (!['off', 'on', 'once'].includes(state)) throw new Error('Unsupported always charge state');
+    if (!this._prevState.smartModeSchema) throw new Error('Always charge requires a newer evcc version');
+    if (!this._prevState.alwaysChargeSupported) throw new Error('Always charge is not supported by this charging point');
+    await this._api.setLoadpointAlwaysCharge(this._loadpointIndex, state);
+    await this._poll();
   }
 
   /** soc is a whole percent (0-100); the capability itself stores a 0-1 fraction. */

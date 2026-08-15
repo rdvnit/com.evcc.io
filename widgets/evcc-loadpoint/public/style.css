@@ -298,6 +298,37 @@ h1 {
     gap: 7px;
 }
 
+.mode-buttons {
+    display: contents;
+}
+
+.smart-content {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+
+.infinity {
+    width: 19px;
+    height: 19px;
+    color: currentColor;
+}
+
+.infinity.active {
+    color: var(--evcc-progress-fill);
+}
+
+.cycle-once {
+    width: 16px !important;
+    height: 16px !important;
+    color: currentColor;
+}
+
+.cycle-once.active {
+    color: var(--evcc-progress-fill);
+}
+
 .mode {
     min-height: 0;
     flex: 1 1 0;
@@ -324,6 +355,40 @@ h1 {
 .mode:disabled {
     cursor: default;
     opacity: .65;
+}
+
+.always-charge {
+    display: flex;
+    min-height: 0;
+    flex: 1 1 0;
+    align-items: center;
+    justify-content: space-between;
+    gap: 4px;
+    padding: 0 6px 0 9px;
+    border-radius: 11px;
+    color: var(--button-text);
+    background: var(--button);
+    font-size: 10px;
+    font-weight: 750;
+}
+
+.always-charge[hidden] {
+    display: none;
+}
+
+.always-charge select {
+    max-width: 48px;
+    padding: 2px 1px;
+    border: 0;
+    border-radius: 6px;
+    color: var(--evcc-primary-text);
+    background: var(--card);
+    font: inherit;
+    font-size: 10px;
+}
+
+.always-charge select:disabled {
+    opacity: .45;
 }
 
 .error {

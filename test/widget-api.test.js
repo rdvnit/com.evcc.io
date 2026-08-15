@@ -11,6 +11,9 @@ function createHomey(capabilities, lp = {}) {
     getAvailable: () => true,
     getCapabilityValue: (capability) => capabilities[capability],
     _poll: async () => lp,
+    _prevState: lp,
+    setChargeMode: async (mode) => { lp.mode = mode; },
+    setAlwaysCharge: async (state) => { lp.alwaysCharge = state; },
   };
 
   return {
@@ -129,4 +132,56 @@ test('hides phases and remaining time when the loadpoint has no data', async () 
 
   assert.equal(state.phases, null);
   assert.equal(state.remaining, null);
+});
+
+test('keeps legacy mode controls when alwaysCharge is absent', async () => {
+  const homey = createHomey({ evcc_charge_mode: 'minpv' }, { mode: 'minpv' });
+
+  const state = await widgetApi.getLoadpoint({ homey, query: { deviceId: 'loadpoint-1' } });
+
+  assert.equal(state.smartModeSchema, false);
+  assert.equal(state.mode, 'minpv');
+  assert.deepEqual(state.modes.map(({ id }) => id), ['off', 'pv', 'minpv', 'now']);
+  assert.equal(state.alwaysCharge, null);
+});
+
+test('uses Smart controls when alwaysCharge is present', async () => {
+  const lp = {
+    mode: 'smart',
+    smartModeSchema: true,
+    alwaysCharge: 'once',
+    alwaysChargeSupported: true,
+  };
+  const homey = createHomey({ evcc_charge_mode: 'minpv' }, lp);
+
+  const state = await widgetApi.getLoadpoint({ homey, query: { deviceId: 'loadpoint-1' } });
+
+  assert.equal(state.mode, 'smart');
+  assert.deepEqual(state.modes.map(({ id }) => id), ['off', 'smart', 'now']);
+  assert.equal(state.alwaysCharge, 'once');
+  assert.equal(state.alwaysChargeSupported, true);
+});
+
+test('sets redesigned mode and always charge through separate handlers', async () => {
+  const lp = {
+    mode: 'off',
+    smartModeSchema: true,
+    alwaysCharge: 'off',
+    alwaysChargeSupported: true,
+  };
+  const homey = createHomey({ evcc_charge_mode: 'pv' }, lp);
+
+  const modeState = await widgetApi.setMode({
+    homey,
+    query: { deviceId: 'loadpoint-1' },
+    body: { mode: 'smart' },
+  });
+  const alwaysState = await widgetApi.setAlwaysCharge({
+    homey,
+    query: { deviceId: 'loadpoint-1' },
+    body: { state: 'once' },
+  });
+
+  assert.equal(modeState.mode, 'smart');
+  assert.equal(alwaysState.alwaysCharge, 'once');
 });
