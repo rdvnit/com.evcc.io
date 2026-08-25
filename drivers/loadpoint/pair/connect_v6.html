@@ -1,0 +1,475 @@
+<style>
+     :root {
+        color-scheme: light;
+        --evcc-green: #0ba631;
+        --evcc-green-bright: #0fde41;
+        --evcc-green-dark: #076f20;
+        --evcc-bg: #f3f3f7;
+        --evcc-card: #fff;
+        --evcc-text: #28293e;
+        --evcc-muted: #777986;
+        --evcc-border: #dedfe6;
+        --evcc-input: #fff;
+        --evcc-error: #fc440f;
+        --evcc-shadow: 0 18px 45px rgba(21, 22, 48, .11);
+    }
+
+    @media (prefers-color-scheme: dark) {
+         :root {
+            color-scheme: dark;
+            --evcc-bg: #010322;
+            --evcc-card: #151630;
+            --evcc-text: #fff;
+            --evcc-muted: #b5b6c3;
+            --evcc-border: #34364f;
+            --evcc-input: #20223c;
+            --evcc-green: #0fde41;
+            --evcc-shadow: 0 18px 52px rgba(0, 0, 0, .28);
+        }
+    }
+
+    html.homey-dark-mode,
+    body.homey-dark-mode,
+    .homey-dark-mode {
+        color-scheme: dark;
+        --evcc-bg: #010322;
+        --evcc-card: #151630;
+        --evcc-text: #fff;
+        --evcc-muted: #b5b6c3;
+        --evcc-border: #34364f;
+        --evcc-input: #20223c;
+        --evcc-green: #0fde41;
+        --evcc-shadow: 0 18px 52px rgba(0, 0, 0, .28);
+    }
+
+    html.homey-dark-mode,
+    html.homey-dark-mode body {
+        background-color: #010322 !important;
+        color-scheme: dark !important;
+    }
+
+    html.homey-dark-mode body * {
+        color: #fff !important;
+    }
+
+    html.homey-dark-mode .evcc-intro,
+    html.homey-dark-mode .evcc-status {
+        color: var(--evcc-muted) !important;
+    }
+
+    html.homey-dark-mode .evcc-status.error {
+        color: var(--evcc-error) !important;
+    }
+
+    html.homey-dark-mode .evcc-status.success {
+        color: var(--evcc-green) !important;
+    }
+
+    html.homey-dark-mode footer,
+    html.homey-dark-mode [class*="footer"],
+    html.homey-dark-mode [class*="navigation"] {
+        background: #010322 !important;
+        box-shadow: none !important;
+    }
+
+    html.homey-dark-mode .evcc-system-bottom-chrome,
+    html.homey-dark-mode .evcc-system-bottom-chrome::before,
+    html.homey-dark-mode .evcc-system-bottom-chrome::after {
+        background: transparent !important;
+        background-image: none !important;
+        box-shadow: none !important;
+        filter: none !important;
+    }
+
+    body {
+        color-scheme: light dark;
+    }
+
+    * {
+        box-sizing: border-box;
+    }
+
+    html,
+    body {
+        min-height: 100%;
+        margin: 0 !important;
+        padding: 0 !important;
+        overflow-x: hidden !important;
+    }
+
+    body {
+        background: radial-gradient(circle at 50% -15%, rgba(15, 222, 65, .13), transparent 32rem), var(--evcc-bg) !important;
+        color: var(--evcc-text) !important;
+        font-family: Montserrat, system-ui, -apple-system, "Segoe UI", sans-serif !important;
+    }
+
+    .evcc-page {
+        width: 100%;
+        max-width: 430px;
+        min-height: 100vh;
+        margin: 0 auto;
+        padding: 40px 24px 40px;
+        padding: 40px 24px calc(40px + env(safe-area-inset-bottom));
+        position: relative;
+        z-index: 1;
+    }
+
+    .evcc-brand {
+        margin: 0 0 32px 4px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+    }
+
+    .evcc-logo {
+        height: 42px;
+        width: auto;
+        display: block;
+    }
+
+    .evcc-logo-dark {
+        display: none;
+    }
+
+    .homey-dark-mode .evcc-logo-light {
+        display: none;
+    }
+
+    .homey-dark-mode .evcc-logo-dark {
+        display: block;
+    }
+
+    @media (prefers-color-scheme: dark) {
+        .evcc-logo-light {
+            display: none;
+        }
+        .evcc-logo-dark {
+            display: block;
+        }
+    }
+
+    .evcc-card {
+        padding: 32px 28px !important;
+        border: 1px solid var(--evcc-border) !important;
+        border-radius: 18px !important;
+        background: var(--evcc-card) !important;
+        box-shadow: var(--evcc-shadow);
+    }
+
+    .evcc-card h1 {
+        margin: 0;
+        font-size: 21px;
+        font-weight: 800;
+        letter-spacing: .25px;
+        line-height: 1.2;
+        text-transform: uppercase;
+        color: var(--evcc-text);
+    }
+
+    .evcc-intro {
+        margin: 12px 0 28px;
+        color: var(--evcc-muted);
+        font-size: 13px;
+        line-height: 1.55;
+    }
+
+    .evcc-field {
+        margin-bottom: 20px;
+    }
+
+    .evcc-field[hidden] {
+        display: none !important;
+    }
+
+    .evcc-field label {
+        display: block;
+        margin: 0 0 8px;
+        font-size: 12px;
+        font-weight: 750;
+        letter-spacing: .2px;
+        color: var(--evcc-text);
+    }
+
+    .evcc-field input {
+        width: 100%;
+        height: 48px !important;
+        padding: 0 14px !important;
+        border: 1px solid var(--evcc-border) !important;
+        border-radius: 10px !important;
+        outline: none;
+        color: var(--evcc-text) !important;
+        background: var(--evcc-input) !important;
+        font-size: 15px;
+        transition: border-color 150ms ease, box-shadow 150ms ease;
+        -webkit-appearance: none;
+        appearance: none;
+    }
+
+    .evcc-field input:focus {
+        border-color: var(--evcc-green) !important;
+        box-shadow: 0 0 0 3px rgba(11, 166, 49, .18) !important;
+    }
+
+    .evcc-password-toggle {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        margin: 8px 0 32px !important;
+        padding: 0 !important;
+        border: 0 !important;
+        color: var(--evcc-text) !important;
+        background: transparent !important;
+        font-size: 13px;
+        font-weight: 650;
+        text-align: left;
+        cursor: pointer;
+    }
+
+    .evcc-switch {
+        width: 38px;
+        height: 22px;
+        position: relative;
+        flex: 0 0 38px;
+        border-radius: 999px;
+        background: var(--evcc-border);
+        transition: background 160ms ease;
+    }
+
+    .evcc-switch::after {
+        content: "";
+        position: absolute;
+        top: 3px;
+        left: 3px;
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        background: #fff;
+        box-shadow: 0 1px 4px rgba(0, 0, 0, .22);
+        transition: transform 160ms ease;
+    }
+
+    .evcc-password-toggle[aria-expanded="true"] .evcc-switch {
+        background: var(--evcc-green);
+    }
+
+    .evcc-password-toggle[aria-expanded="true"] .evcc-switch::after {
+        transform: translateX(16px);
+    }
+
+    .evcc-submit {
+        width: 100%;
+        min-height: 50px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 9px;
+        border: 0 !important;
+        border-radius: 16px !important;
+        color: #fff !important;
+        background: #0ba631 !important;
+        font-size: 14px;
+        font-weight: 800;
+        letter-spacing: .45px;
+        text-transform: uppercase;
+        cursor: pointer;
+        transition: background 150ms ease, transform 80ms ease;
+    }
+
+    .evcc-submit:hover:not(:disabled) {
+        background: var(--evcc-green-dark) !important;
+    }
+
+    .evcc-submit:active {
+        transform: translateY(1px);
+    }
+
+    .evcc-submit:disabled {
+        opacity: .72;
+        cursor: wait;
+    }
+
+    .evcc-submit svg {
+        width: 18px;
+        height: 18px;
+    }
+
+    .evcc-status {
+        min-height: 18px;
+        margin: 14px 2px 0;
+        color: var(--evcc-muted);
+        font-size: 12px;
+        line-height: 1.45;
+        text-align: center;
+    }
+
+    .evcc-status.error {
+        color: var(--evcc-error);
+        font-weight: 600;
+    }
+
+    .evcc-status.success {
+        color: var(--evcc-green);
+        font-weight: 700;
+    }
+
+    @media (max-height: 640px) {
+        .evcc-page {
+            padding-top: 24px;
+        }
+        .evcc-brand {
+            margin-bottom: 20px;
+        }
+        .evcc-logo {
+            height: 34px;
+        }
+        .evcc-card {
+            padding: 24px 20px;
+        }
+        .evcc-intro {
+            margin-bottom: 20px;
+        }
+    }
+</style>
+
+<main class="evcc-page">
+    <div class="evcc-brand" aria-label="evcc">
+        <img class="evcc-logo evcc-logo-light" src="../../../assets/evcc-logo-light.png" alt="evcc">
+        <img class="evcc-logo evcc-logo-dark" src="../../../assets/evcc-logo-dark.png" alt="evcc">
+    </div>
+    <form class="evcc-card" id="evcc-form" novalidate>
+        <h1>Connect charging point</h1>
+        <p class="evcc-intro">Enter the address of your EVCC instance. A charging point is only added when EVCC reports a configured device.</p>
+        <div class="evcc-field">
+            <label for="evcc-host">EVCC URL</label>
+            <input type="url" id="evcc-host" inputmode="url" autocomplete="url" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="http://192.168.1.50:7070">
+        </div>
+        <button class="evcc-password-toggle" id="evcc-password-toggle" type="button" aria-expanded="false" aria-controls="evcc-password-field">
+      <span class="evcc-switch" aria-hidden="true"></span>
+      <span>My EVCC instance uses a password</span>
+    </button>
+        <div class="evcc-field" id="evcc-password-field" hidden>
+            <label for="evcc-password">PASSWORD</label>
+            <input type="password" id="evcc-password" autocomplete="current-password">
+        </div>
+        <button class="evcc-submit" id="evcc-submit" type="submit">
+      <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M13.2 2 5.7 13h5L9.8 22l8.5-12h-5.1V2Z" fill="currentColor"/></svg>
+      <span>Connect</span>
+    </button>
+        <div class="evcc-status" id="evcc-status" role="status" aria-live="polite"></div>
+    </form>
+</main>
+<script>
+    const form = document.getElementById('evcc-form');
+    const hostInput = document.getElementById('evcc-host');
+    const passwordInput = document.getElementById('evcc-password');
+    const passwordToggle = document.getElementById('evcc-password-toggle');
+    const passwordField = document.getElementById('evcc-password-field');
+    const submitBtn = document.getElementById('evcc-submit');
+    const submitLabel = submitBtn.querySelector('span');
+    const statusEl = document.getElementById('evcc-status');
+
+    const darkQuery = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)');
+    const applyTheme = () => {
+        if (!darkQuery) return;
+        document.documentElement.classList.toggle('homey-dark-mode', darkQuery.matches);
+        document.documentElement.style.backgroundColor = darkQuery.matches ? '#010322' : '#f3f3f7';
+        document.body.style.backgroundColor = darkQuery.matches ? '#010322' : '#f3f3f7';
+        let themeColor = document.querySelector('meta[name="theme-color"]');
+        if (!themeColor) {
+            themeColor = document.createElement('meta');
+            themeColor.name = 'theme-color';
+            document.head.appendChild(themeColor);
+        }
+        themeColor.content = darkQuery.matches ? '#010322' : '#f3f3f7';
+    };
+    applyTheme();
+    if (darkQuery) {
+        if (darkQuery.addEventListener) darkQuery.addEventListener('change', applyTheme);
+        else if (darkQuery.addListener) darkQuery.addListener(applyTheme);
+    }
+
+    const prepareSystemDeviceList = () => {
+        const emptyMessage = 'No new devices have been found.';
+        const isWhiteEffect = (style) => {
+            const visual = `${style.backgroundImage} ${style.backgroundColor} ${style.boxShadow}`.toLowerCase();
+            return (visual.includes('gradient') || visual.includes('shadow')) &&
+                (visual.includes('255, 255, 255') || visual.includes('white'));
+        };
+        const restyle = () => {
+            document.querySelectorAll('body *').forEach((element) => {
+                if (element.children.length === 0 && element.textContent.trim() === emptyMessage) {
+                    const style = getComputedStyle(element);
+                    if (style.display !== 'none' && style.visibility !== 'hidden') {
+                        element.style.setProperty('margin-top', 'clamp(72px, 18vh, 160px)', 'important');
+                    }
+                }
+                const rect = element.getBoundingClientRect();
+                if (!rect.height || rect.bottom < window.innerHeight - 180) return;
+                if (isWhiteEffect(getComputedStyle(element)) ||
+                    isWhiteEffect(getComputedStyle(element, '::before')) ||
+                    isWhiteEffect(getComputedStyle(element, '::after'))) {
+                    element.classList.add('evcc-system-bottom-chrome');
+                }
+            });
+        };
+        const observer = new MutationObserver(restyle);
+        observer.observe(document.body, { childList: true, subtree: true });
+        [0, 100, 300, 700].forEach((delay) => setTimeout(restyle, delay));
+        setTimeout(() => observer.disconnect(), 2000);
+    };
+
+    Homey.on('prefill', (data) => {
+        if (data && data.host) hostInput.value = data.host;
+    });
+    Homey.emit('get-prefill', {}).catch(() => {});
+
+    passwordToggle.addEventListener('click', () => {
+        const expanded = passwordToggle.getAttribute('aria-expanded') === 'true';
+        passwordToggle.setAttribute('aria-expanded', String(!expanded));
+        passwordField.hidden = expanded;
+        if (!expanded) {
+            passwordInput.focus();
+            requestAnimationFrame(() => submitBtn.scrollIntoView({
+                behavior: 'smooth',
+                block: 'center'
+            }));
+        }
+    });
+
+    form.addEventListener('submit', async(event) => {
+        event.preventDefault();
+        const host = hostInput.value.trim();
+        const password = passwordInput.value;
+        statusEl.className = 'evcc-status';
+        statusEl.textContent = '';
+        if (!host) {
+            statusEl.textContent = 'Please enter the evcc URL.';
+            statusEl.classList.add('error');
+            hostInput.focus();
+            return;
+        }
+
+        submitBtn.disabled = true;
+        submitLabel.textContent = 'Connecting…';
+        statusEl.textContent = 'Checking the evcc connection…';
+
+        try {
+            await Homey.emit('connect', {
+                host,
+                password
+            });
+            statusEl.textContent = 'Connected. Opening device list…';
+            statusEl.classList.add('success');
+            prepareSystemDeviceList();
+            Homey.showView('list_devices');
+        } catch (err) {
+            statusEl.classList.add('error');
+            statusEl.textContent = (err && err.message) || 'Could not connect to evcc. Check the URL and try again.';
+        } finally {
+            submitBtn.disabled = false;
+            submitLabel.textContent = 'Connect';
+        }
+    });
+</script>
