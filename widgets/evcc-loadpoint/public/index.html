@@ -107,6 +107,7 @@
 
             let modeButtons = [];
             let modeSignature = '';
+            let currentData = null;
 
             function buildModes(modes) {
                 modeSignature = modes.map((mode) => `${mode.id}:${mode.label}`).join('|');
@@ -115,6 +116,7 @@
                     button.type = 'button';
                     button.className = `mode ${mode.id}`;
                     button.dataset.modeId = mode.id;
+                    button.dataset.modeLabel = mode.label;
                     if (mode.id === 'smart') {
                         button.innerHTML = `<span class="smart-content"><span>Smart</span><svg class="infinity" viewBox="0 0 24 24"><path fill="currentColor" d="M5.5 17.5q-2.3 0-3.9-1.6T0 12t1.6-3.9t3.9-1.6q.925 0 1.775.325T8.8 7.75l1.7 1.55L9 10.65l-1.55-1.4q-.4-.35-.9-.55T5.5 8.5q-1.45 0-2.475 1.025T2 12t1.025 2.475T5.5 15.5q.55 0 1.05-.2t.9-.55l7.75-7q.675-.6 1.525-.925T18.5 6.5q2.3 0 3.9 1.6T24 12t-1.6 3.9t-3.9 1.6q-.925 0-1.775-.325T15.2 16.25l-1.7-1.55l1.5-1.35l1.55 1.4q.4.35.9.55t1.05.2q1.45 0 2.475-1.025T22 12t-1.025-2.475T18.5 8.5q-.55 0-1.05.2t-.9.55l-7.75 7q-.675.6-1.525.925T5.5 17.5"/></svg><svg class="cycle-once once-icon" viewBox="0 0 24 24" hidden><path fill="currentColor" d="M3 21q-.825 0-1.412-.587T1 19V5q0-.825.588-1.412T3 3h18q.825 0 1.413.588T23 5v14q0 .825-.587 1.413T21 21zm0-2h18V5H3zm0 0V5zM7 9v7q0 .425.288.713T8 17t.713-.288T9 16V8q0-.425-.288-.712T8 7H6q-.425 0-.712.288T5 8t.288.713T6 9zm8.25 4.825l1.5 2.725q.125.2.325.325t.45.125q.5 0 .75-.437t0-.863L16.25 12l2.05-3.7q.25-.425-.012-.862T17.525 7q-.25 0-.45.125t-.325.325l-1.5 2.725l-1.5-2.725q-.125-.2-.325-.325T12.975 7q-.5 0-.75.438t0 .862L14.25 12l-2.05 3.7q-.25.425.013.863t.762.437q.25 0 .45-.125t.325-.325z"/></svg></span>`;
                     } else {
@@ -126,14 +128,17 @@
                         setBusy(true);
                         try {
                             if (mode.id === 'smart') {
-                                let always = elements.modes.dataset.always || 'off';
-                                if (elements.modes.dataset.selected === 'smart') {
+                                const data = currentData || {};
+                                let always = elements.modes.dataset.always;
+                                if (elements.modes.dataset.selected !== 'smart') {
+                                    render(await Homey.api('POST', `/mode?deviceId=${encodeURIComponent(deviceId)}`, { mode: 'smart' }));
+                                } else if (data.alwaysChargeSupported) {
                                     if (always === 'off') always = 'on';
                                     else if (always === 'on') always = 'once';
                                     else always = 'off';
+                                    const response = await Homey.api('POST', `/always-charge?deviceId=${encodeURIComponent(deviceId)}`, { state: always });
+                                    render(response);
                                 }
-                                await Homey.api('POST', `/mode?deviceId=${encodeURIComponent(deviceId)}`, { mode: 'smart' });
-                                render(await Homey.api('POST', `/always-charge?deviceId=${encodeURIComponent(deviceId)}`, { state: always }));
                             } else {
                                 render(await Homey.api('POST', `/mode?deviceId=${encodeURIComponent(deviceId)}`, { mode: mode.id }));
                             }
@@ -149,6 +154,7 @@
             }
 
             function render(data) {
+                currentData = data;
                 elements.error.hidden = true;
                 elements.name.textContent = data.name || 'Charging point';
                 elements.status.className = `status ${data.charging ? 'charging' : data.connected ? 'connected' : 'disconnected'}`;
@@ -210,7 +216,7 @@
                 const nextModeSignature = data.modes.map((mode) => `${mode.id}:${mode.label}`).join('|');
                 if (modeSignature !== nextModeSignature) buildModes(data.modes);
                 elements.modes.dataset.selected = data.mode;
-                elements.modes.dataset.always = data.alwaysCharge || 'off';
+                elements.modes.dataset.always = data.alwaysCharge || '';
                 modeButtons.forEach((button) => {
                     const selected = button.dataset.modeId === data.mode;
                     button.classList.toggle('selected', selected);
@@ -219,11 +225,18 @@
                         const inf = button.querySelector('.infinity');
                         const onc = button.querySelector('.cycle-once');
                         const showAlwaysCharge = selected && (data.alwaysCharge === 'on' || data.alwaysCharge === 'once');
-                        if (inf) inf.classList.toggle('active', showAlwaysCharge);
+                        if (inf) {
+                            inf.hidden = !data.alwaysChargeSupported;
+                            inf.classList.toggle('active', showAlwaysCharge);
+                        }
                         if (onc) {
                             onc.hidden = !selected || data.alwaysCharge !== 'once';
+                            onc.hidden = !data.alwaysChargeSupported || onc.hidden;
                             onc.classList.toggle('active', selected && data.alwaysCharge === 'once');
                         }
+                        button.setAttribute('aria-label', data.alwaysChargeSupported
+                            ? `${button.dataset.modeLabel}; ${data.alwaysChargeLabel} ${data.alwaysCharge}`
+                            : button.dataset.modeLabel);
                     }
                 });
             }

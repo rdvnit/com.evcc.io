@@ -20,6 +20,18 @@
               }
             },
             {
+              "id": "smart",
+              "label": {
+                "en": "Smart"
+              }
+            },
+            {
+              "id": "now",
+              "label": {
+                "en": "Fast"
+              }
+            },
+            {
               "id": "pv",
               "label": {
                 "en": "Solar only"
@@ -29,12 +41,6 @@
               "id": "minpv",
               "label": {
                 "en": "Min + Solar"
-              }
-            },
-            {
-              "id": "now",
-              "label": {
-                "en": "Fast"
               }
             }
           ]
@@ -151,6 +157,18 @@
               }
             },
             {
+              "id": "smart",
+              "label": {
+                "en": "Smart"
+              }
+            },
+            {
+              "id": "now",
+              "label": {
+                "en": "Fast"
+              }
+            },
+            {
               "id": "pv",
               "label": {
                 "en": "Solar only"
@@ -160,12 +178,6 @@
               "id": "minpv",
               "label": {
                 "en": "Min + Solar"
-              }
-            },
-            {
-              "id": "now",
-              "label": {
-                "en": "Fast"
               }
             }
           ]
@@ -243,6 +255,18 @@
               }
             },
             {
+              "id": "smart",
+              "label": {
+                "en": "Smart"
+              }
+            },
+            {
+              "id": "now",
+              "label": {
+                "en": "Fast"
+              }
+            },
+            {
               "id": "pv",
               "label": {
                 "en": "Solar only"
@@ -252,12 +276,6 @@
               "id": "minpv",
               "label": {
                 "en": "Min + Solar"
-              }
-            },
-            {
-              "id": "now",
-              "label": {
-                "en": "Fast"
               }
             }
           ]

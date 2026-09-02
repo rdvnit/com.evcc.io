@@ -1,0 +1,29 @@
+{
+  "type": "enum",
+  "title": {
+    "en": "Always charge"
+  },
+  "getable": true,
+  "setable": true,
+  "uiComponent": "picker",
+  "values": [
+    {
+      "id": "off",
+      "title": {
+        "en": "Off"
+      }
+    },
+    {
+      "id": "on",
+      "title": {
+        "en": "Always"
+      }
+    },
+    {
+      "id": "once",
+      "title": {
+        "en": "Once"
+      }
+    }
+  ]
+}

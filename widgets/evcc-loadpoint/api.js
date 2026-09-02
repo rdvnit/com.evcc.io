@@ -17,8 +17,7 @@ function formatRemaining(seconds) {
   return { value: String(m), unit: 'm' };
 }
 
-async function getState(device) {
-  const lp = await device._poll();
+function renderState(device, lp) {
   const connected = Boolean(device.getCapabilityValue('evcc_connected'));
   const soc = device.getCapabilityValue('measure_battery');
   const sessionEnergy = device.getCapabilityValue('meter_power');
@@ -28,9 +27,25 @@ async function getState(device) {
   const charging = connected && typeof power === 'number' && power > 0;
   const paused = connected && reportedCharging && !charging;
   const smartModeSchema = Boolean(lp && lp.smartModeSchema);
+  const continuous = smartModeSchema && Boolean(lp.continuous);
   const mode = smartModeSchema
     ? lp.mode
     : device.getCapabilityValue('evcc_charge_mode') || 'off';
+  const smartModes = continuous
+    ? [
+      { id: 'off', label: 'Normal' },
+      { id: 'smart', label: 'Smart' },
+      { id: 'now', label: 'Boost' },
+    ]
+    : lp && lp.switchDevice ? [
+      { id: 'off', label: 'Off' },
+      { id: 'smart', label: 'Smart' },
+      { id: 'now', label: 'On' },
+    ] : [
+      { id: 'off', label: 'Off' },
+      { id: 'smart', label: 'Smart' },
+      { id: 'now', label: 'Fast' },
+    ];
 
   return {
     name: device.getName(),
@@ -47,11 +62,7 @@ async function getState(device) {
     remaining: lp && typeof lp.chargeRemainingDuration === 'number' ? formatRemaining(lp.chargeRemainingDuration) : null,
     mode,
     modes: smartModeSchema
-      ? [
-        { id: 'off', label: 'Off' },
-        { id: 'smart', label: 'Smart' },
-        { id: 'now', label: 'Fast' },
-      ]
+      ? smartModes
       : [
         { id: 'off', label: 'Off' },
         { id: 'pv', label: 'Solar' },
@@ -59,9 +70,15 @@ async function getState(device) {
         { id: 'now', label: 'Fast' },
       ],
     smartModeSchema,
+    continuous,
     alwaysCharge: smartModeSchema ? lp.alwaysCharge : null,
-    alwaysChargeSupported: smartModeSchema && Boolean(lp.alwaysChargeSupported),
+    alwaysChargeSupported: smartModeSchema && Boolean(lp.alwaysChargeSupported) && Boolean(lp.alwaysChargeValid),
+    alwaysChargeLabel: continuous ? 'Always heat' : 'Always charge',
   };
+}
+
+async function getState(device) {
+  return renderState(device, await device._poll());
 }
 
 module.exports = {
@@ -76,18 +93,14 @@ module.exports = {
   async setMode({ homey, query, body }) {
     const device = getDevice(homey, query.deviceId);
     const mode = body && body.mode;
-    const allowedModes = device._prevState && device._prevState.smartModeSchema
-      ? ['off', 'smart', 'now']
-      : ['off', 'pv', 'minpv', 'now'];
-    if (!allowedModes.includes(mode)) throw new Error('Unsupported charging mode');
-    await device.setChargeMode(mode);
-    return getState(device);
+    const snapshot = await device.setChargeMode(mode);
+    return renderState(device, snapshot);
   },
 
   async setAlwaysCharge({ homey, query, body }) {
     const device = getDevice(homey, query.deviceId);
     const state = body && body.state;
-    await device.setAlwaysCharge(state);
-    return getState(device);
+    const snapshot = await device.setAlwaysCharge(state);
+    return renderState(device, snapshot);
   },
 };

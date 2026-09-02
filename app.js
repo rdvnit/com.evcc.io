@@ -2,7 +2,7 @@
 
 const Homey = require('homey');
 
-const CHARGE_MODES = ['off', 'pv', 'minpv', 'now'];
+const CHARGE_MODES = ['off', 'smart', 'now', 'pv', 'minpv'];
 const BATTERY_MODES = ['unknown', 'normal', 'hold', 'charge'];
 
 class EvccApp extends Homey.App {
@@ -14,6 +14,12 @@ class EvccApp extends Homey.App {
 
   _registerFlowCards() {
     const flow = this.homey.flow;
+
+    flow.getDeviceTriggerCard('charge_mode_changed')
+      .registerRunListener(async (args, state) => args.mode === state.mode);
+
+    flow.getDeviceTriggerCard('always_charge_changed')
+      .registerRunListener(async (args, state) => args.state === state.state);
 
     flow.getActionCard('set_charge_mode')
       .registerRunListener(async (args) => args.device.setChargeMode(args.mode));
@@ -55,7 +61,7 @@ class EvccApp extends Homey.App {
       .registerRunListener(async (args) => args.device.resetBatteryControl());
 
     flow.getConditionCard('charge_mode_is')
-      .registerRunListener(async (args) => args.device.getCapabilityValue('evcc_charge_mode') === args.mode);
+      .registerRunListener(async (args) => args.device.isChargeMode(args.mode));
 
     flow.getConditionCard('always_charge_is')
       .registerRunListener(async (args) => args.device.getAlwaysCharge() === args.state);
