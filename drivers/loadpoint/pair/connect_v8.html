@@ -42,13 +42,12 @@
         --evcc-shadow: 0 18px 52px rgba(0, 0, 0, .28);
     }
 
-    html.homey-dark-mode,
-    html.homey-dark-mode body {
+    html.homey-dark-mode body.evcc-pairing-view {
         background-color: #010322 !important;
         color-scheme: dark !important;
     }
 
-    html.homey-dark-mode body * {
+    html.homey-dark-mode body.evcc-pairing-view * {
         color: #fff !important;
     }
 
@@ -65,39 +64,23 @@
         color: var(--evcc-green) !important;
     }
 
-    html.homey-dark-mode footer,
-    html.homey-dark-mode [class*="footer"],
-    html.homey-dark-mode [class*="navigation"] {
-        background: #010322 !important;
-        box-shadow: none !important;
-    }
-
-    html.homey-dark-mode .evcc-system-bottom-chrome,
-    html.homey-dark-mode .evcc-system-bottom-chrome::before,
-    html.homey-dark-mode .evcc-system-bottom-chrome::after {
-        background: transparent !important;
-        background-image: none !important;
-        box-shadow: none !important;
-        filter: none !important;
-    }
-
-    body {
+    body.evcc-pairing-view {
         color-scheme: light dark;
     }
 
-    * {
+    .evcc-page,
+    .evcc-page * {
         box-sizing: border-box;
     }
 
-    html,
-    body {
+    body.evcc-pairing-view {
         min-height: 100%;
         margin: 0 !important;
         padding: 0 !important;
         overflow-x: hidden !important;
     }
 
-    body {
+    body.evcc-pairing-view {
         background: radial-gradient(circle at 50% -15%, rgba(15, 222, 65, .13), transparent 32rem), var(--evcc-bg) !important;
         color: var(--evcc-text) !important;
         font-family: Montserrat, system-ui, -apple-system, "Segoe UI", sans-serif !important;
@@ -361,6 +344,7 @@
     </form>
 </main>
 <script>
+    document.body.classList.add('evcc-pairing-view');
     const form = document.getElementById('evcc-form');
     const hostInput = document.getElementById('evcc-host');
     const passwordInput = document.getElementById('evcc-password');
@@ -374,51 +358,12 @@
     const applyTheme = () => {
         if (!darkQuery) return;
         document.documentElement.classList.toggle('homey-dark-mode', darkQuery.matches);
-        document.documentElement.style.backgroundColor = darkQuery.matches ? '#010322' : '#f3f3f7';
-        document.body.style.backgroundColor = darkQuery.matches ? '#010322' : '#f3f3f7';
-        let themeColor = document.querySelector('meta[name="theme-color"]');
-        if (!themeColor) {
-            themeColor = document.createElement('meta');
-            themeColor.name = 'theme-color';
-            document.head.appendChild(themeColor);
-        }
-        themeColor.content = darkQuery.matches ? '#010322' : '#f3f3f7';
     };
     applyTheme();
     if (darkQuery) {
         if (darkQuery.addEventListener) darkQuery.addEventListener('change', applyTheme);
         else if (darkQuery.addListener) darkQuery.addListener(applyTheme);
     }
-
-    const prepareSystemDeviceList = () => {
-        const emptyMessage = 'No new devices have been found.';
-        const isWhiteEffect = (style) => {
-            const visual = `${style.backgroundImage} ${style.backgroundColor} ${style.boxShadow}`.toLowerCase();
-            return (visual.includes('gradient') || visual.includes('shadow')) &&
-                (visual.includes('255, 255, 255') || visual.includes('white'));
-        };
-        const restyle = () => {
-            document.querySelectorAll('body *').forEach((element) => {
-                if (element.children.length === 0 && element.textContent.trim() === emptyMessage) {
-                    const style = getComputedStyle(element);
-                    if (style.display !== 'none' && style.visibility !== 'hidden') {
-                        element.style.setProperty('margin-top', 'clamp(72px, 18vh, 160px)', 'important');
-                    }
-                }
-                const rect = element.getBoundingClientRect();
-                if (!rect.height || rect.bottom < window.innerHeight - 180) return;
-                if (isWhiteEffect(getComputedStyle(element)) ||
-                    isWhiteEffect(getComputedStyle(element, '::before')) ||
-                    isWhiteEffect(getComputedStyle(element, '::after'))) {
-                    element.classList.add('evcc-system-bottom-chrome');
-                }
-            });
-        };
-        const observer = new MutationObserver(restyle);
-        observer.observe(document.body, { childList: true, subtree: true });
-        [0, 100, 300, 700].forEach((delay) => setTimeout(restyle, delay));
-        setTimeout(() => observer.disconnect(), 2000);
-    };
 
     Homey.on('prefill', (data) => {
         if (data && data.host) hostInput.value = data.host;
@@ -462,7 +407,7 @@
             });
             statusEl.textContent = 'Connected. Opening device list…';
             statusEl.classList.add('success');
-            prepareSystemDeviceList();
+            document.body.classList.remove('evcc-pairing-view');
             Homey.showView('list_devices');
         } catch (err) {
             statusEl.classList.add('error');
