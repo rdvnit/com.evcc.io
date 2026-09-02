@@ -1012,14 +1012,14 @@
       },
       "pair": [
         {
-          "id": "connect",
-          "navigation": {
-            "next": "list_devices"
-          }
+          "id": "connect_v6"
         },
         {
           "id": "list_devices",
           "template": "list_devices",
+          "options": {
+            "singular": false
+          },
           "navigation": {
             "next": "add_devices"
           }
@@ -1125,14 +1125,14 @@
       },
       "pair": [
         {
-          "id": "connect",
-          "navigation": {
-            "next": "list_devices"
-          }
+          "id": "connect_v6"
         },
         {
           "id": "list_devices",
           "template": "list_devices",
+          "options": {
+            "singular": false
+          },
           "navigation": {
             "next": "add_devices"
           }
@@ -1221,14 +1221,14 @@
       },
       "pair": [
         {
-          "id": "connect",
-          "navigation": {
-            "next": "list_devices"
-          }
+          "id": "connect_v6"
         },
         {
           "id": "list_devices",
           "template": "list_devices",
+          "options": {
+            "singular": false
+          },
           "navigation": {
             "next": "add_devices"
           }

@@ -41,6 +41,7 @@ class BatteryDriver extends Homey.Driver {
     });
 
     session.setHandler('list_devices', async () => {
+      if (!host) throw new Error('Enter the evcc URL and press Connect first.');
       const api = new EvccApi({ host, password });
       if (password) await api.login();
       const rawState = await api.getState();
