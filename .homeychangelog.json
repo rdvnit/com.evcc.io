@@ -10,5 +10,8 @@
   },
   "1.1.0": {
     "en": "Added dashboard widgets for live site energy flow and EV charging points, including charging modes, target charge level, session energy, remaining time, and improved light and dark themes."
+  },
+  "1.2.0": {
+    "en": "Added compatibility with evcc Smart mode and Always Charge while preserving existing automations, and improved pairing pages with reliable light and dark mode device selection."
   }
 }
