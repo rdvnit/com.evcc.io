@@ -14,6 +14,18 @@
       }
     },
     {
+      "id": "smart",
+      "title": {
+        "en": "Smart"
+      }
+    },
+    {
+      "id": "now",
+      "title": {
+        "en": "Fast"
+      }
+    },
+    {
       "id": "pv",
       "title": {
         "en": "Solar only"
@@ -23,12 +35,6 @@
       "id": "minpv",
       "title": {
         "en": "Min + Solar"
-      }
-    },
-    {
-      "id": "now",
-      "title": {
-        "en": "Fast"
       }
     }
   ]

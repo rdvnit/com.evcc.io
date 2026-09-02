@@ -4,6 +4,28 @@ const Homey = require('homey');
 const EvccApi = require('../../lib/EvccApi');
 const { normalizeState } = require('../../lib/normalize');
 
+const LEGACY_MODE_VALUES = [
+  { id: 'off', title: { en: 'Off' } },
+  { id: 'pv', title: { en: 'Solar only' } },
+  { id: 'minpv', title: { en: 'Min + Solar' } },
+  { id: 'now', title: { en: 'Fast' } },
+];
+const SMART_MODE_VALUES = [
+  { id: 'off', title: { en: 'Off' } },
+  { id: 'smart', title: { en: 'Smart' } },
+  { id: 'now', title: { en: 'Fast' } },
+];
+const SWITCH_MODE_VALUES = [
+  { id: 'off', title: { en: 'Off' } },
+  { id: 'smart', title: { en: 'Smart' } },
+  { id: 'now', title: { en: 'On' } },
+];
+const HEATING_MODE_VALUES = [
+  { id: 'off', title: { en: 'Normal' } },
+  { id: 'smart', title: { en: 'Smart' } },
+  { id: 'now', title: { en: 'Boost' } },
+];
+
 class LoadpointDevice extends Homey.Device {
 
   async onInit() {
@@ -13,6 +35,8 @@ class LoadpointDevice extends Homey.Device {
     this._loadpointIndex = store.loadpointIndex;
     this._api = new EvccApi({ host: settings.host, password: settings.password });
     this._prevState = {};
+    this._operationQueue = Promise.resolve();
+    this._alwaysChargeListenerRegistered = false;
 
     this._registerCapabilityListeners();
     await this._poll();
@@ -28,6 +52,15 @@ class LoadpointDevice extends Homey.Device {
       // our own setTargetSoc() work in whole percent (0-100).
       await this.setTargetSoc(Math.round(value * 100));
     });
+    this._registerAlwaysChargeListener();
+  }
+
+  _registerAlwaysChargeListener() {
+    if (this._alwaysChargeListenerRegistered || !this.hasCapability('evcc_always_charge')) return;
+    this.registerCapabilityListener('evcc_always_charge', async (value) => {
+      await this.setAlwaysCharge(value);
+    });
+    this._alwaysChargeListenerRegistered = true;
   }
 
   _startPolling(seconds) {
@@ -44,13 +77,24 @@ class LoadpointDevice extends Homey.Device {
     }
   }
 
+  _enqueueOperation(operation) {
+    const result = this._operationQueue.catch(() => {}).then(operation);
+    this._operationQueue = result.catch(() => {});
+    return result;
+  }
+
   async _poll() {
+    return this._enqueueOperation(() => this._pollOnce({ throwOnError: false }));
+  }
+
+  async _pollOnce({ throwOnError }) {
     try {
       const rawState = await this._api.getState();
       const { loadpoints } = normalizeState(rawState);
       const lp = loadpoints.find((l) => l.index === this._loadpointIndex);
       if (!lp) throw new Error(`Loadpoint ${this._loadpointIndex} not found on evcc instance`);
 
+      await this._syncSchemaCapabilities(lp);
       await this._applyState(lp);
 
       if (!this.getAvailable()) await this.setAvailable();
@@ -58,6 +102,7 @@ class LoadpointDevice extends Homey.Device {
     } catch (err) {
       this.error('evcc poll error:', err.message);
       await this.setUnavailable(err.message).catch(() => {});
+      if (throwOnError) throw err;
       return null;
     }
   }
@@ -73,10 +118,40 @@ class LoadpointDevice extends Homey.Device {
     await this.setCapabilityValue(capability, null).catch((err) => this.error(`setCapabilityValue(${capability})`, err.message));
   }
 
+  async _syncSchemaCapabilities(lp) {
+    const modeValues = lp.smartModeSchema
+      ? lp.continuous ? HEATING_MODE_VALUES : lp.switchDevice ? SWITCH_MODE_VALUES : SMART_MODE_VALUES
+      : LEGACY_MODE_VALUES;
+    const modeSignature = JSON.stringify(modeValues);
+    if (this._modeOptionsSignature !== modeSignature) {
+      await this.setCapabilityOptions('evcc_charge_mode', { values: modeValues });
+      this._modeOptionsSignature = modeSignature;
+    }
+
+    if (lp.smartModeSchema && lp.alwaysChargeSupported) {
+      if (!this.hasCapability('evcc_always_charge')) {
+        await this.addCapability('evcc_always_charge');
+      }
+      this._registerAlwaysChargeListener();
+
+      const alwaysChargeTitle = lp.continuous ? 'Always heat' : 'Always charge';
+      if (this._alwaysChargeTitle !== alwaysChargeTitle) {
+        await this.setCapabilityOptions('evcc_always_charge', { title: { en: alwaysChargeTitle } });
+        this._alwaysChargeTitle = alwaysChargeTitle;
+      }
+    }
+  }
+
   async _applyState(lp) {
     const prev = this._prevState;
 
     await this._safeSet('evcc_charge_mode', lp.mode);
+    if (lp.smartModeSchema && lp.alwaysChargeSupported && lp.alwaysChargeValid
+      && this.hasCapability('evcc_always_charge')) {
+      await this._safeSet('evcc_always_charge', lp.alwaysCharge);
+    } else if (this.hasCapability('evcc_always_charge')) {
+      await this._clearIfSet('evcc_always_charge');
+    }
     await this._safeSet('evcc_target_soc', typeof lp.targetSoc === 'number' ? lp.targetSoc / 100 : null);
     // evcc only has live vehicle telemetry while a car is connected; when
     // disconnected it reports soc/range as 0 placeholders, not real values,
@@ -95,9 +170,24 @@ class LoadpointDevice extends Homey.Device {
 
     const flow = this.homey.flow;
 
-    if (prev.mode !== undefined && prev.mode !== lp.mode) {
+    const sameModeSchema = prev.smartModeSchema !== undefined
+      && prev.smartModeSchema === lp.smartModeSchema;
+    if (sameModeSchema && prev.mode !== undefined && prev.mode !== lp.mode) {
       flow.getDeviceTriggerCard('charge_mode_changed')
         .trigger(this, { mode: lp.mode }, { mode: lp.mode })
+        .catch((err) => this.error(err));
+    }
+    if (sameModeSchema && prev.legacyMode !== undefined && prev.legacyMode !== null
+      && lp.legacyMode !== null && prev.legacyMode !== lp.legacyMode && lp.legacyMode !== lp.mode) {
+      flow.getDeviceTriggerCard('charge_mode_changed')
+        .trigger(this, { mode: lp.legacyMode }, { mode: lp.legacyMode })
+        .catch((err) => this.error(err));
+    }
+
+    if (prev.alwaysCharge !== undefined && prev.alwaysCharge !== null
+      && lp.alwaysCharge !== null && prev.alwaysCharge !== lp.alwaysCharge) {
+      flow.getDeviceTriggerCard('always_charge_changed')
+        .trigger(this, { state: lp.alwaysCharge }, { state: lp.alwaysCharge })
         .catch((err) => this.error(err));
     }
 
@@ -125,8 +215,44 @@ class LoadpointDevice extends Homey.Device {
   }
 
   async setChargeMode(mode) {
-    await this._api.setLoadpointMode(this._loadpointIndex, mode);
-    await this._safeSet('evcc_charge_mode', mode);
+    return this._enqueueOperation(async () => {
+      const redesigned = this._prevState && this._prevState.smartModeSchema === true;
+      const legacy = this._prevState && this._prevState.smartModeSchema === false;
+      const allowedModes = redesigned
+        ? ['off', 'smart', 'now', 'pv', 'minpv']
+        : legacy ? ['off', 'pv', 'minpv', 'now'] : [];
+      if (!allowedModes.includes(mode)) {
+        throw new Error('Unsupported charging mode for the detected evcc schema');
+      }
+      await this._api.setLoadpointMode(this._loadpointIndex, mode);
+      return this._pollOnce({ throwOnError: true });
+    });
+  }
+
+  isChargeMode(mode) {
+    return Boolean(this._prevState)
+      && (this._prevState.mode === mode || this._prevState.legacyMode === mode);
+  }
+
+  getAlwaysCharge() {
+    return this._prevState.alwaysCharge;
+  }
+
+  async setAlwaysCharge(state) {
+    return this._enqueueOperation(async () => {
+      if (!['off', 'on', 'once'].includes(state)) throw new Error('Unsupported always charge state');
+      if (!this._prevState || this._prevState.smartModeSchema !== true) {
+        throw new Error('Always charge requires a valid redesigned evcc schema');
+      }
+      if (!this._prevState.alwaysChargeSupported) {
+        throw new Error('Always charge is not supported by this charging point');
+      }
+      if (!this._prevState.alwaysChargeValid) {
+        throw new Error('Always charge state from evcc is invalid');
+      }
+      await this._api.setLoadpointAlwaysCharge(this._loadpointIndex, state);
+      return this._pollOnce({ throwOnError: true });
+    });
   }
 
   /** soc is a whole percent (0-100); the capability itself stores a 0-1 fraction. */

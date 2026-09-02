@@ -20,6 +20,18 @@
               }
             },
             {
+              "id": "smart",
+              "label": {
+                "en": "Smart"
+              }
+            },
+            {
+              "id": "now",
+              "label": {
+                "en": "Fast"
+              }
+            },
+            {
               "id": "pv",
               "label": {
                 "en": "Solar only"
@@ -29,12 +41,6 @@
               "id": "minpv",
               "label": {
                 "en": "Min + Solar"
-              }
-            },
-            {
-              "id": "now",
-              "label": {
-                "en": "Fast"
               }
             }
           ]
@@ -46,6 +52,50 @@
           "type": "string",
           "title": {
             "en": "Mode"
+          }
+        }
+      ]
+    },
+    {
+      "id": "always_charge_changed",
+      "title": {
+        "en": "Always charge changed"
+      },
+      "titleFormatted": {
+        "en": "Always charge changed to [[state]]"
+      },
+      "args": [
+        {
+          "name": "state",
+          "type": "dropdown",
+          "values": [
+            {
+              "id": "off",
+              "label": {
+                "en": "Off"
+              }
+            },
+            {
+              "id": "on",
+              "label": {
+                "en": "Always"
+              }
+            },
+            {
+              "id": "once",
+              "label": {
+                "en": "Once"
+              }
+            }
+          ]
+        }
+      ],
+      "tokens": [
+        {
+          "name": "state",
+          "type": "string",
+          "title": {
+            "en": "State"
           }
         }
       ]
@@ -107,6 +157,18 @@
               }
             },
             {
+              "id": "smart",
+              "label": {
+                "en": "Smart"
+              }
+            },
+            {
+              "id": "now",
+              "label": {
+                "en": "Fast"
+              }
+            },
+            {
               "id": "pv",
               "label": {
                 "en": "Solar only"
@@ -117,11 +179,40 @@
               "label": {
                 "en": "Min + Solar"
               }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "always_charge_is",
+      "title": {
+        "en": "Always charge !{{is|is not}}"
+      },
+      "titleFormatted": {
+        "en": "Always charge !{{is|is not}} [[state]]"
+      },
+      "args": [
+        {
+          "name": "state",
+          "type": "dropdown",
+          "values": [
+            {
+              "id": "off",
+              "label": {
+                "en": "Off"
+              }
             },
             {
-              "id": "now",
+              "id": "on",
               "label": {
-                "en": "Fast"
+                "en": "Always"
+              }
+            },
+            {
+              "id": "once",
+              "label": {
+                "en": "Once"
               }
             }
           ]
@@ -164,6 +255,18 @@
               }
             },
             {
+              "id": "smart",
+              "label": {
+                "en": "Smart"
+              }
+            },
+            {
+              "id": "now",
+              "label": {
+                "en": "Fast"
+              }
+            },
+            {
               "id": "pv",
               "label": {
                 "en": "Solar only"
@@ -174,11 +277,40 @@
               "label": {
                 "en": "Min + Solar"
               }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "set_always_charge",
+      "title": {
+        "en": "Set Always charge"
+      },
+      "titleFormatted": {
+        "en": "Set Always charge to [[state]]"
+      },
+      "args": [
+        {
+          "name": "state",
+          "type": "dropdown",
+          "values": [
+            {
+              "id": "off",
+              "label": {
+                "en": "Off"
+              }
             },
             {
-              "id": "now",
+              "id": "on",
               "label": {
-                "en": "Fast"
+                "en": "Always"
+              }
+            },
+            {
+              "id": "once",
+              "label": {
+                "en": "Once"
               }
             }
           ]

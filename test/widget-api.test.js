@@ -4,13 +4,16 @@ const assert = require('node:assert/strict');
 const test = require('node:test');
 const widgetApi = require('../widgets/evcc-loadpoint/api');
 
-function createHomey(capabilities, lp = {}) {
+function createHomey(capabilities, lp = {}, calls = []) {
   const device = {
     getId: () => 'loadpoint-1',
     getName: () => 'Driveway',
     getAvailable: () => true,
     getCapabilityValue: (capability) => capabilities[capability],
-    _poll: async () => lp,
+    _poll: async () => { calls.push('poll'); return lp; },
+    _prevState: lp,
+    setChargeMode: async (mode) => { calls.push(`mode:${mode}`); lp.mode = mode; return lp; },
+    setAlwaysCharge: async (state) => { calls.push(`always:${state}`); lp.alwaysCharge = state; return lp; },
   };
 
   return {
@@ -129,4 +132,132 @@ test('hides phases and remaining time when the loadpoint has no data', async () 
 
   assert.equal(state.phases, null);
   assert.equal(state.remaining, null);
+});
+
+test('keeps legacy mode controls when alwaysCharge is absent', async () => {
+  const homey = createHomey({ evcc_charge_mode: 'minpv' }, { mode: 'minpv' });
+
+  const state = await widgetApi.getLoadpoint({ homey, query: { deviceId: 'loadpoint-1' } });
+
+  assert.equal(state.smartModeSchema, false);
+  assert.equal(state.mode, 'minpv');
+  assert.deepEqual(state.modes.map(({ id }) => id), ['off', 'pv', 'minpv', 'now']);
+  assert.equal(state.alwaysCharge, null);
+});
+
+test('uses Smart controls when alwaysCharge is present', async () => {
+  const lp = {
+    mode: 'smart',
+    smartModeSchema: true,
+    alwaysCharge: 'once',
+    alwaysChargeValid: true,
+    alwaysChargeSupported: true,
+  };
+  const homey = createHomey({ evcc_charge_mode: 'minpv' }, lp);
+
+  const state = await widgetApi.getLoadpoint({ homey, query: { deviceId: 'loadpoint-1' } });
+
+  assert.equal(state.mode, 'smart');
+  assert.deepEqual(state.modes.map(({ id }) => id), ['off', 'smart', 'now']);
+  assert.equal(state.alwaysCharge, 'once');
+  assert.equal(state.alwaysChargeSupported, true);
+});
+
+test('uses heating labels and Always heat semantics for continuous loadpoints', async () => {
+  const lp = {
+    mode: 'smart',
+    smartModeSchema: true,
+    alwaysCharge: 'on',
+    alwaysChargeValid: true,
+    alwaysChargeSupported: true,
+    continuous: true,
+    switchDevice: false,
+  };
+  const homey = createHomey({ evcc_charge_mode: 'smart' }, lp);
+
+  const state = await widgetApi.getLoadpoint({ homey, query: { deviceId: 'loadpoint-1' } });
+
+  assert.deepEqual(state.modes.map(({ label }) => label), ['Normal', 'Smart', 'Boost']);
+  assert.equal(state.alwaysChargeLabel, 'Always heat');
+});
+
+test('sets redesigned mode and always charge through separate handlers', async () => {
+  const lp = {
+    mode: 'off',
+    smartModeSchema: true,
+    alwaysCharge: 'off',
+    alwaysChargeValid: true,
+    alwaysChargeSupported: true,
+  };
+  const homey = createHomey({ evcc_charge_mode: 'pv' }, lp);
+
+  const modeState = await widgetApi.setMode({
+    homey,
+    query: { deviceId: 'loadpoint-1' },
+    body: { mode: 'smart' },
+  });
+  const alwaysState = await widgetApi.setAlwaysCharge({
+    homey,
+    query: { deviceId: 'loadpoint-1' },
+    body: { state: 'once' },
+  });
+
+  assert.equal(modeState.mode, 'smart');
+  assert.equal(alwaysState.alwaysCharge, 'once');
+});
+
+test('write endpoints render their authoritative snapshot without a second poll', async () => {
+  const calls = [];
+  const lp = {
+    mode: 'off',
+    smartModeSchema: true,
+    alwaysCharge: 'off',
+    alwaysChargeValid: true,
+    alwaysChargeSupported: true,
+  };
+  const homey = createHomey({ evcc_charge_mode: 'off' }, lp, calls);
+
+  await widgetApi.setMode({
+    homey,
+    query: { deviceId: 'loadpoint-1' },
+    body: { mode: 'smart' },
+  });
+  await widgetApi.setAlwaysCharge({
+    homey,
+    query: { deviceId: 'loadpoint-1' },
+    body: { state: 'on' },
+  });
+
+  assert.deepEqual(calls, ['mode:smart', 'always:on']);
+});
+
+test('disables Always charge in widget state when upstream value is invalid', async () => {
+  const homey = createHomey({ evcc_charge_mode: 'smart' }, {
+    mode: 'smart',
+    smartModeSchema: true,
+    alwaysCharge: null,
+    alwaysChargeValid: false,
+    alwaysChargeSupported: true,
+  });
+
+  const state = await widgetApi.getLoadpoint({ homey, query: { deviceId: 'loadpoint-1' } });
+
+  assert.equal(state.alwaysCharge, null);
+  assert.equal(state.alwaysChargeSupported, false);
+});
+
+test('uses On for redesigned switch devices and exposes no Always charge control', async () => {
+  const homey = createHomey({ evcc_charge_mode: 'smart' }, {
+    mode: 'smart',
+    smartModeSchema: true,
+    alwaysCharge: 'off',
+    alwaysChargeValid: true,
+    alwaysChargeSupported: false,
+    switchDevice: true,
+  });
+
+  const state = await widgetApi.getLoadpoint({ homey, query: { deviceId: 'loadpoint-1' } });
+
+  assert.deepEqual(state.modes.map(({ label }) => label), ['Off', 'Smart', 'On']);
+  assert.equal(state.alwaysChargeSupported, false);
 });

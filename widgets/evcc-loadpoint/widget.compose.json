@@ -21,6 +21,10 @@
       "method": "POST",
       "path": "/mode"
     },
+    "setAlwaysCharge": {
+      "method": "POST",
+      "path": "/always-charge"
+    },
     "refresh": {
       "method": "POST",
       "path": "/refresh"
